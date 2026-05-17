@@ -115,8 +115,9 @@ Chapter
 ├── events[] (ordered list of Event Instances)
 ├── scoring[]
 ├── grades[]              (label, min, max — non-overlapping, 0–999)
-├── outro_text_escaped    (text — shown when player selects "I Escaped")
-└── outro_text_knocked_out (text — shown when player selects "I was Knocked Out")
+├── outro_text_escaped              (text — shown when player selects "I Escaped"; score counts)
+├── outro_text_knocked_out_saved    (text — shown when player selects "Knocked Out — Saved"; score counts)
+└── outro_text_knocked_out_depths   (text — shown when player selects "Knocked Out — In the Depths"; score = 0)
 ```
 
 **Event** (a configured event placed in a chapter):
@@ -347,8 +348,9 @@ Configures the completion of chapter. Fields include:
 |---|---|---|
 | scoring | List | Scoring criteria |
 | grades | List of Grade | Each grade entry has a label, a min score, and a max score (see format below) |
-| outro_text_escaped | TextArea | Text shown when player selects "I Escaped" at chapter end |
-| outro_text_knocked_out | TextArea | Text shown when player selects "I was Knocked Out" at chapter end |
+| outro_text_escaped | TextArea | Text shown when player selects "I Escaped" — score is calculated normally |
+| outro_text_knocked_out_saved | TextArea | Text shown when player selects "Knocked Out — Saved" — score is calculated normally |
+| outro_text_knocked_out_depths | TextArea | Text shown when player selects "Knocked Out — In the Depths" — score is forced to 0 |
 
 ##### Grade Format
 
@@ -379,17 +381,25 @@ Each entry in the `grades` list defines a distinct, non-overlapping score band:
 
 ---
 
-At the end of a chapter the app presents two outcome options for the player to self-report:
+At the end of a chapter the app presents three outcome options for the player to self-report:
 
 ```
-┌─────────────────────────────────────┐
-│  How did this chapter end?          │
-│                                     │
-│  [ I Escaped ]   [ I was Knocked Out]│
-└─────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│  How did this chapter end?                       │
+│                                                  │
+│  [ I Escaped ]                                   │
+│  [ Knocked Out — Saved ]                         │
+│  [ Knocked Out — In the Depths ]                 │
+└──────────────────────────────────────────────────┘
 ```
 
-The app does not detect or enforce the outcome — the player selects whichever applies. The corresponding `outro_text` is then displayed, followed by the scoring screen.
+The app does not detect or enforce the outcome — the player selects whichever applies. Outcome behaviour:
+
+| Outcome | Outro text shown | Score |
+|---|---|---|
+| I Escaped | `outro_text_escaped` | Calculated from entered score |
+| Knocked Out — Saved | `outro_text_knocked_out_saved` | Calculated from entered score |
+| Knocked Out — In the Depths | `outro_text_knocked_out_depths` | Forced to 0 — scoring screen is skipped |
 
 ---
 
@@ -635,7 +645,7 @@ Any `.json` file can be selected for import. The app runs a validation pass befo
 | File is valid JSON | "File is not valid JSON" |
 | `name` field present and non-empty | "Campaign name is missing" |
 | `chapters` is a non-empty array | "Campaign has no chapters" |
-| Each chapter has `chapter_number`, `title`, `events` | "Chapter {n}: missing required field {field}" |
+| Each chapter has `chapter_number`, `title`, `events`, `outro_text_escaped`, `outro_text_knocked_out_saved`, `outro_text_knocked_out_depths` | "Chapter {n}: missing required field {field}" |
 | Each event has `event_id`, `category`, `name`, `count` ≥ 1, `event_completion_text` with ≥ 1 entry | "Chapter {n}, Event {id}: missing or invalid field {field}" |
 | Each event `category` is one of: `MAIN-QUEST`, `SIDE-QUEST`, `ROUND-END`, `ESCAPE` | "Chapter {n}, Event {id}: unknown category {value}" |
 | Each chapter has exactly one `ESCAPE` event | "Chapter {n}: must have exactly one ESCAPE event" |

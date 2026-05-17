@@ -14,20 +14,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check if app is scaffolded
+        id: app_check
+        run: |
+          if [ -f "package.json" ]; then
+            echo "scaffolded=true" >> $GITHUB_OUTPUT
+          else
+            echo "scaffolded=false" >> $GITHUB_OUTPUT
+            echo "No package.json found — skipping build and test steps until app is scaffolded."
+          fi
+
       - name: Setup Node.js
+        if: steps.app_check.outputs.scaffolded == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
+        if: steps.app_check.outputs.scaffolded == 'true'
         run: npm ci
 
       - name: Run unit tests
+        if: steps.app_check.outputs.scaffolded == 'true'
         run: npm run test:unit
 
       - name: Run build check
+        if: steps.app_check.outputs.scaffolded == 'true'
         run: npm run build
 
       - name: Validate events JSON
+        if: steps.app_check.outputs.scaffolded == 'true'
         run: node scripts/validate-events.js

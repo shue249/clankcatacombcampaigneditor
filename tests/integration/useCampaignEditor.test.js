@@ -80,4 +80,29 @@ describe('useCampaignEditor', () => {
     act(() => result.current.updateChapter(1, { title: 'Reactive' }))
     expect(result.current.campaign.chapters[0].title).toBe('Reactive')
   })
+
+  it('deleteChapter removes the chapter with the given number', () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.deleteChapter(1))
+    expect(result.current.campaign.chapters).toHaveLength(1)
+  })
+
+  it('deleteChapter renumbers remaining chapters sequentially', () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2), buildNewChapter(3)] }],
+    })
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.deleteChapter(2))
+    expect(result.current.campaign.chapters[0].chapter_number).toBe(1)
+    expect(result.current.campaign.chapters[1].chapter_number).toBe(2)
+  })
+
+  it('deleteChapter does nothing when only one chapter remains', () => {
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.deleteChapter(1))
+    expect(result.current.campaign.chapters).toHaveLength(1)
+  })
 })

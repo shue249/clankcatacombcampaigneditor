@@ -20,7 +20,7 @@ export function StoryTab({ chapter, onUpdate }) {
     <div className="flex flex-col gap-6 max-w-xl">
       <div>
         <label htmlFor="chapter-title" className="block text-sm text-gray-300 mb-1">
-          Chapter Title
+          Title
         </label>
         <input
           id="chapter-title"
@@ -31,9 +31,6 @@ export function StoryTab({ chapter, onUpdate }) {
           placeholder="e.g. Saving the boss"
           className={inputClass}
         />
-        <p className="mt-1 text-xs text-gray-500">
-          Shown in the sidebar as &quot;Chapter {chapter.chapter_number}{title.trim() ? ` - ${title.trim()}` : ''}&quot;
-        </p>
       </div>
 
       <div>

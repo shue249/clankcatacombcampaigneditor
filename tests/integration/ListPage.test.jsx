@@ -33,11 +33,27 @@ describe('ListPage', () => {
     expect(screen.getByText('My Campaign')).toBeInTheDocument()
   })
 
-  it('creates a new campaign when New Campaign is clicked', async () => {
+  it('opens the create modal when New Campaign is clicked', async () => {
     renderPage()
     await userEvent.click(screen.getByRole('button', { name: /new campaign/i }))
-    expect(screen.queryByText(/no campaigns yet/i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/name/i)).toBeInTheDocument()
+  })
+
+  it('creates a campaign after filling in the modal and clicking Create', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /new campaign/i }))
+    await userEvent.type(screen.getByLabelText(/name/i), 'My Quest')
+    await userEvent.click(screen.getByRole('button', { name: /^create$/i }))
     expect(useCampaignStore.getState().campaigns).toHaveLength(1)
+    expect(useCampaignStore.getState().campaigns[0].name).toBe('My Quest')
+  })
+
+  it('closes the modal without creating when Cancel is clicked', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /new campaign/i }))
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(screen.queryByLabelText(/name/i)).not.toBeInTheDocument()
+    expect(useCampaignStore.getState().campaigns).toHaveLength(0)
   })
 
   it('deletes a campaign when Delete is clicked on its card', async () => {

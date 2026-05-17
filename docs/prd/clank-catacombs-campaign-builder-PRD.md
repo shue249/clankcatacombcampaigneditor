@@ -323,6 +323,7 @@ Opens on create (drag-drop) and on edit (click an existing node). Contains:
 - **Select + Delete node**: click node → press Delete key (removes node and all its edges)
 - **Edit node**: click node → Event Detail Popup opens pre-filled
 - **Mini-map**: small overview panel in bottom-right corner for large chapters
+- **Auto-layout**: a toolbar button that arranges all nodes into a clean top-to-bottom DAG layout. Node positions are preserved exactly as the author left them at all other times — auto-layout is opt-in only.
 
 Fields for each event include:
 
@@ -671,7 +672,7 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Closed — Yes. SIDE-QUEST and ROUND-END are both optional. A chapter with only MAIN-QUEST nodes leading to ESCAPE is valid. |
 | 6 | Should multiple incoming edges to an event use AND logic (all must complete) or OR logic (any one suffices), or should the author be able to choose per event? | Product | Closed — AND logic. All incoming edges must be completed before the target event unlocks. Already documented in Tab 3 edge spec. |
 | 7 | What is the format of the `grades` list in Tab 4 — is it score threshold ranges (e.g. A ≥ 150, B ≥ 100) or a different structure? | Product | Closed — min-max ranges per grade label, no overlapping, scores 0–999. Gap scores shown as "Ungraded". Grade format spec and validation rules added to Tab 4. Chapter data model updated. |
-| 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Open |
+| 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Closed — canvas always restores author's last positions. An opt-in "Auto-layout" button in the toolbar arranges nodes into a clean top-to-bottom DAG on demand. Added to Tab 3 canvas controls. |
 | 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Open |
 | 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Open |
 | 11 | Is `starting_map` in the Chapter Setup a free-text description, or will a structured map editor be added in a later version? | Product | Open |

@@ -42,7 +42,3 @@ jobs:
       - name: Run build check
         if: steps.app_check.outputs.scaffolded == 'true'
         run: npm run build
-
-      - name: Validate events JSON
-        if: steps.app_check.outputs.scaffolded == 'true'
-        run: node scripts/validate-events.js

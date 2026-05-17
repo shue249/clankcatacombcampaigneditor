@@ -114,7 +114,7 @@ Chapter
 ├── instructions
 ├── events[] (ordered list of Event Instances)
 ├── scoring[]
-├── grades[]
+├── grades[]              (label, min, max — non-overlapping, 0–999)
 └── outro_text (text — shown on escape/game-over)
 ```
 
@@ -343,9 +343,38 @@ Configures the completion of chapter. Fields include:
 | Field | Type | Description |
 |---|---|---|
 | scoring | List | Scoring criteria |
-| grades | List | Grades criteria |
+| grades | List of Grade | Each grade entry has a label, a min score, and a max score (see format below) |
 | outro_text_escaped | TextArea | Text shown when player selects "I Escaped" at chapter end |
 | outro_text_knocked_out | TextArea | Text shown when player selects "I was Knocked Out" at chapter end |
+
+##### Grade Format
+
+Each entry in the `grades` list defines a distinct, non-overlapping score band:
+
+| Field | Type | Description |
+|---|---|---|
+| label | Text | Grade label shown to player (e.g. "S", "A", "B", "C", "D") |
+| min | Integer (0–999) | Minimum score for this grade (inclusive) |
+| max | Integer (0–999) | Maximum score for this grade (inclusive) |
+
+**Rules:**
+- Score range is 0–999
+- Ranges must not overlap across entries
+- `min` must be ≤ `max` for each entry
+- Ranges do not need to be contiguous — a score that falls in a gap is shown as "Ungraded"
+- The app validates for overlaps on save and highlights conflicting rows
+
+**Example:**
+
+| Label | Min | Max |
+|---|---|---|
+| S | 200 | 999 |
+| A | 150 | 199 |
+| B | 100 | 149 |
+| C | 50 | 99 |
+| D | 0 | 49 |
+
+---
 
 At the end of a chapter the app presents two outcome options for the player to self-report:
 
@@ -641,7 +670,7 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | 4 | Is there a game-over / knocked-out state separate from ESCAPE? If so, how is it triggered and what does the player see? | Product | Closed — no automated detection. App presents two self-report options at chapter end: "I Escaped" / "I was Knocked Out". Corresponding outro_text is shown. Tab 4 split into `outro_text_escaped` and `outro_text_knocked_out`. |
 | 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Closed — Yes. SIDE-QUEST and ROUND-END are both optional. A chapter with only MAIN-QUEST nodes leading to ESCAPE is valid. |
 | 6 | Should multiple incoming edges to an event use AND logic (all must complete) or OR logic (any one suffices), or should the author be able to choose per event? | Product | Closed — AND logic. All incoming edges must be completed before the target event unlocks. Already documented in Tab 3 edge spec. |
-| 7 | What is the format of the `grades` list in Tab 4 — is it score threshold ranges (e.g. A ≥ 150, B ≥ 100) or a different structure? | Product | Open |
+| 7 | What is the format of the `grades` list in Tab 4 — is it score threshold ranges (e.g. A ≥ 150, B ≥ 100) or a different structure? | Product | Closed — min-max ranges per grade label, no overlapping, scores 0–999. Gap scores shown as "Ungraded". Grade format spec and validation rules added to Tab 4. Chapter data model updated. |
 | 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Open |
 | 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Open |
 | 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Open |

@@ -626,10 +626,40 @@ A campaign can be exported as a single `.json` file conforming to the campaign d
 
 ### 6.2 Import
 
-Any `.json` file matching the campaign schema can be imported. On import:
-- The platform validates the schema
-- Any unknown event_type_ids are flagged (but the campaign is still importable — unknown events render as a manual instruction card in Player mode)
-- The campaign is added to the user's local campaign list
+Any `.json` file can be selected for import. The app runs a validation pass before accepting it. If validation passes the campaign is added to the local list. If it fails, the import is rejected and all errors are shown to the user — no partial imports.
+
+##### Validation Rules
+
+| Rule | Error shown if violated |
+|---|---|
+| File is valid JSON | "File is not valid JSON" |
+| `name` field present and non-empty | "Campaign name is missing" |
+| `chapters` is a non-empty array | "Campaign has no chapters" |
+| Each chapter has `chapter_number`, `title`, `events` | "Chapter {n}: missing required field {field}" |
+| Each event has `event_id`, `category`, `name`, `count` ≥ 1, `event_completion_text` with ≥ 1 entry | "Chapter {n}, Event {id}: missing or invalid field {field}" |
+| Each event `category` is one of: `MAIN-QUEST`, `SIDE-QUEST`, `ROUND-END`, `ESCAPE` | "Chapter {n}, Event {id}: unknown category {value}" |
+| Each chapter has exactly one `ESCAPE` event | "Chapter {n}: must have exactly one ESCAPE event" |
+| No circular dependencies in `required_event_ids` | "Chapter {n}: circular dependency detected involving event {id}" |
+| All `required_event_ids` reference valid event IDs within the same chapter | "Chapter {n}, Event {id}: references unknown event {ref_id}" |
+| Grade ranges do not overlap (if grades defined) | "Chapter {n}: grade ranges overlap between {label1} and {label2}" |
+| Grade `min` ≤ `max`, values within 0–999 (if grades defined) | "Chapter {n}, Grade {label}: invalid range {min}–{max}" |
+
+##### Validation UX
+
+```
+┌────────────────────────────────────────────┐
+│  Import Failed — 3 errors found            │
+│                                            │
+│  ✕  Chapter 2: must have exactly one       │
+│     ESCAPE event                           │
+│  ✕  Chapter 3, Event EVT-005: references   │
+│     unknown event EVT-012                  │
+│  ✕  Chapter 3: grade ranges overlap        │
+│     between A and B                        │
+│                                            │
+│                          [OK]              │
+└────────────────────────────────────────────┘
+```
 
 ### 6.3 Sharing Format
 
@@ -673,8 +703,8 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | 6 | Should multiple incoming edges to an event use AND logic (all must complete) or OR logic (any one suffices), or should the author be able to choose per event? | Product | Closed — AND logic. All incoming edges must be completed before the target event unlocks. Already documented in Tab 3 edge spec. |
 | 7 | What is the format of the `grades` list in Tab 4 — is it score threshold ranges (e.g. A ≥ 150, B ≥ 100) or a different structure? | Product | Closed — min-max ranges per grade label, no overlapping, scores 0–999. Gap scores shown as "Ungraded". Grade format spec and validation rules added to Tab 4. Chapter data model updated. |
 | 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Closed — canvas always restores author's last positions. An opt-in "Auto-layout" button in the toolbar arranges nodes into a clean top-to-bottom DAG on demand. Added to Tab 3 canvas controls. |
-| 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Open |
-| 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Open |
+| 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Closed — no published schema file. Import validation is handled entirely within the app. Full validation rules and error UX added to section 6.2. |
+| 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Closed — no undo feature. Event completions are final. |
 | 11 | Is `starting_map` in the Chapter Setup a free-text description, or will a structured map editor be added in a later version? | Product | Open |
 | 12 | When a campaign is shared via base64 URL, is there a size limit concern for campaigns with many chapters and events? | Engineering | Open |
 

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CampaignCard } from '../components/CampaignCard'
+import { NewCampaignModal } from '../components/NewCampaignModal'
 import { useCampaigns } from '../hooks/useCampaigns'
 
 export function ListPage() {
@@ -8,6 +9,12 @@ export function ListPage() {
   const { campaigns, createCampaign, removeCampaign, importCampaign, exportCampaign } = useCampaigns()
   const fileInputRef = useRef(null)
   const [importErrors, setImportErrors] = useState([])
+  const [showCreateModal, setShowCreateModal] = useState(false)
+
+  function handleConfirmCreate(opts) {
+    createCampaign(opts)
+    setShowCreateModal(false)
+  }
 
   async function handleFileChange(e) {
     const file = e.target.files[0]
@@ -37,7 +44,7 @@ export function ListPage() {
           />
           <button
             className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-semibold"
-            onClick={() => createCampaign({ name: 'New Campaign' })}
+            onClick={() => setShowCreateModal(true)}
           >
             + New Campaign
           </button>
@@ -57,6 +64,13 @@ export function ListPage() {
             Dismiss
           </button>
         </div>
+      )}
+
+      {showCreateModal && (
+        <NewCampaignModal
+          onConfirm={handleConfirmCreate}
+          onCancel={() => setShowCreateModal(false)}
+        />
       )}
 
       <main>

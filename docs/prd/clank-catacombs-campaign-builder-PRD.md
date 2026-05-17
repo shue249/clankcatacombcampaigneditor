@@ -20,7 +20,7 @@ The **Clank! Catacombs Campaign Editor** is a web platform for designing campaig
 2. Allows easy run of the campaigns
 3. Ensure campaigns are shareable: exportable as JSON, importable by other players.
 
-### 1.3 Out of Scope (v1.0)
+### 1.3 Out of Scope (v1.1)
 
 - Multiplayer or co-op campaign support
 - Integration with the official Direwolf app
@@ -319,12 +319,32 @@ Opens on create (drag-drop) and on edit (click an existing node). Contains:
 | Only MAIN-QUEST nodes may connect to ESCAPE | Edge is rejected with an inline error if a SIDE-QUEST or ROUND-END node tries to connect to ESCAPE |
 | Save requires at least one MAIN-QUEST leaf connected to ESCAPE | Save button is disabled with tooltip until this condition is met |
 
+##### Deleting an Event
+
+Any event node except ESCAPE can be deleted. Deleting a node removes it and all edges connected to it — both incoming (events that were prerequisites) and outgoing (events it was unlocking). No orphaned edges are left on the canvas.
+
+**Interaction:**
+1. Click a node to select it — the node highlights with a selection border
+2. Press the **Delete** key, or click the **✕** button that appears on the selected node
+3. A confirmation prompt appears: *"Delete [event name]? This will also remove all connected edges."*
+4. Confirm → node and all its edges are removed
+5. Cancel → no change
+
+**Behaviour on delete:**
+
+| Scenario | Result |
+|---|---|
+| Deleted node had incoming edges | Those edges are removed; source nodes become unconnected leaf nodes |
+| Deleted node had outgoing edges | Those edges are removed; target nodes lose that prerequisite |
+| Deleted node was the only MAIN-QUEST leaf connected to ESCAPE | Save button becomes disabled until a new valid path to ESCAPE is established |
+| ESCAPE node selected | Delete key and ✕ button are both disabled — ESCAPE cannot be deleted |
+
 ##### Additional Canvas Controls
 
 - **Pan**: click and drag on empty canvas area
 - **Zoom**: scroll wheel or pinch gesture
-- **Select + Delete node**: click node → press Delete key (removes node and all its edges)
 - **Edit node**: click node → Event Detail Popup opens pre-filled
+- **Delete edge only**: click an edge → press Delete key to remove that connection without deleting either node
 - **Mini-map**: small overview panel in bottom-right corner for large chapters
 - **Auto-layout**: a toolbar button that arranges all nodes into a clean top-to-bottom DAG layout. Node positions are preserved exactly as the author left them at all other times — auto-layout is opt-in only.
 

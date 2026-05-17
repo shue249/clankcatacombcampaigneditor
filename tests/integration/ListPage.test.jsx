@@ -6,8 +6,15 @@ import { ListPage } from '../../src/pages/ListPage'
 import { useCampaignStore } from '../../src/store/campaignStore'
 import * as campaignService from '../../src/services/campaignService'
 
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+
 beforeEach(() => {
   useCampaignStore.setState({ campaigns: [] })
+  mockNavigate.mockClear()
   vi.restoreAllMocks()
 })
 
@@ -46,6 +53,15 @@ describe('ListPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /^create$/i }))
     expect(useCampaignStore.getState().campaigns).toHaveLength(1)
     expect(useCampaignStore.getState().campaigns[0].name).toBe('My Quest')
+  })
+
+  it('navigates to /creator/:id after creating a campaign', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: /new campaign/i }))
+    await userEvent.type(screen.getByLabelText(/name/i), 'Navigation Test')
+    await userEvent.click(screen.getByRole('button', { name: /^create$/i }))
+    const id = useCampaignStore.getState().campaigns[0].id
+    expect(mockNavigate).toHaveBeenCalledWith(`/creator/${id}`)
   })
 
   it('closes the modal without creating when Cancel is clicked', async () => {

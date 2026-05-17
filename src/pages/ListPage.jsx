@@ -12,8 +12,9 @@ export function ListPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
 
   function handleConfirmCreate(opts) {
-    createCampaign(opts)
+    const campaign = createCampaign(opts)
     setShowCreateModal(false)
+    navigate(`/creator/${campaign.id}`)
   }
 
   async function handleFileChange(e) {

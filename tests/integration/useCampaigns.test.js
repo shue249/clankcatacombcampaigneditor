@@ -22,6 +22,15 @@ describe('useCampaigns', () => {
     expect(result.current.campaigns[0].name).toBe('New Campaign')
   })
 
+  it('createCampaign returns the new campaign with an id', () => {
+    const { result } = renderHook(() => useCampaigns())
+    let campaign
+    act(() => { campaign = result.current.createCampaign({ name: 'Returned' }) })
+    expect(campaign).toBeDefined()
+    expect(campaign.id).toBeTruthy()
+    expect(campaign.name).toBe('Returned')
+  })
+
   it('removeCampaign deletes a campaign from the store', () => {
     const { result } = renderHook(() => useCampaigns())
     act(() => result.current.createCampaign({ name: 'To Delete' }))

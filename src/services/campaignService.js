@@ -4,6 +4,7 @@ export function buildNewChapter(chapterNumber) {
   return {
     chapter_number: chapterNumber,
     title: '',
+    intro_text: '',
     outro_text_escaped: '',
     outro_text_knocked_out_saved: '',
     outro_text_knocked_out_depths: '',

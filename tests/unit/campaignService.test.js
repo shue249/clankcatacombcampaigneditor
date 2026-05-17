@@ -8,6 +8,10 @@ describe('buildNewChapter', () => {
     expect(ch.title).toBe('')
   })
 
+  it('includes intro_text as empty string', () => {
+    expect(buildNewChapter(1).intro_text).toBe('')
+  })
+
   it('includes required outro_text fields as empty strings', () => {
     const ch = buildNewChapter(1)
     expect(ch.outro_text_escaped).toBe('')

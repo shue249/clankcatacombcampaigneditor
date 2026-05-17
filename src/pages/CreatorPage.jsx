@@ -1,35 +1,43 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { CampaignSettings } from '../components/CampaignSettings'
+import { useCampaignEditor } from '../hooks/useCampaignEditor'
 
-export default function CreatorPage() {
+export function CreatorPage() {
+  const { id } = useParams()
   const navigate = useNavigate()
+  const { campaign, updateSettings } = useCampaignEditor(id)
+
+  useEffect(() => {
+    if (campaign === undefined) navigate('/')
+  }, [campaign, navigate])
+
+  if (!campaign) return null
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex">
-      {/* Sidebar */}
-      <aside className="w-56 bg-gray-900 border-r border-gray-800 p-4 flex flex-col gap-2">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-2">Campaign</h2>
-        <button className="text-left px-3 py-2 rounded hover:bg-gray-800 text-sm">Settings</button>
-        <button className="text-left px-3 py-2 rounded hover:bg-gray-800 text-sm">+ Add Chapter</button>
-        <div className="mt-auto">
-          <button
-            className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-semibold"
-            onClick={() => alert('Save coming soon')}
-          >
-            Save
-          </button>
-          <button
-            className="w-full mt-2 px-3 py-2 text-gray-400 hover:text-white text-sm"
-            onClick={() => navigate('/')}
-          >
-            ← Back to List
-          </button>
-        </div>
-      </aside>
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+      <header className="flex items-center gap-4 px-6 py-4 border-b border-gray-800 bg-gray-900">
+        <button
+          aria-label="Back"
+          onClick={() => navigate('/')}
+          className="text-gray-400 hover:text-white text-sm px-3 py-1 rounded hover:bg-gray-800"
+        >
+          ← Back
+        </button>
+        <h1 className="text-lg font-semibold text-white truncate">{campaign.name}</h1>
+      </header>
 
-      {/* Main area */}
-      <main className="flex-1 p-8">
-        <p className="text-gray-400 text-sm">Select or add a chapter to begin editing.</p>
-      </main>
+      <div className="flex flex-1">
+        <aside className="w-72 border-r border-gray-800 bg-gray-900 p-6 overflow-y-auto">
+          <CampaignSettings campaign={campaign} onUpdate={updateSettings} />
+        </aside>
+
+        <main className="flex-1 p-8">
+          <p className="text-gray-500 text-sm">Chapters coming soon.</p>
+        </main>
+      </div>
     </div>
   )
 }
+
+export default CreatorPage

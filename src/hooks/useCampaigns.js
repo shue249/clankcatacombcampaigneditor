@@ -6,7 +6,9 @@ export function useCampaigns() {
   const { campaigns, addCampaign, deleteCampaign } = useCampaignStore()
 
   function createCampaign(opts) {
-    addCampaign(buildNewCampaign(opts))
+    const campaign = buildNewCampaign(opts)
+    addCampaign(campaign)
+    return campaign
   }
 
   function removeCampaign(id) {

@@ -182,6 +182,7 @@ Fields:
 
 ### 4.4 Chapter Editor
 
+Allows Adding new chapters, editing existing chapters and deleting chapters.
 Each chapter has four tabs:
 
 #### Tab 1: Story

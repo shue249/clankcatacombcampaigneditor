@@ -342,9 +342,22 @@ Configures the completion of chapter. Fields include:
 
 | Field | Type | Description |
 |---|---|---|
-| scoring | List | Scoring criteria  |
+| scoring | List | Scoring criteria |
 | grades | List | Grades criteria |
-| outro_text | TextArea | text — shown at end of chapter
+| outro_text_escaped | TextArea | Text shown when player selects "I Escaped" at chapter end |
+| outro_text_knocked_out | TextArea | Text shown when player selects "I was Knocked Out" at chapter end |
+
+At the end of a chapter the app presents two outcome options for the player to self-report:
+
+```
+┌─────────────────────────────────────┐
+│  How did this chapter end?          │
+│                                     │
+│  [ I Escaped ]   [ I was Knocked Out]│
+└─────────────────────────────────────┘
+```
+
+The app does not detect or enforce the outcome — the player selects whichever applies. The corresponding `outro_text` is then displayed, followed by the scoring screen.
 
 ---
 
@@ -625,8 +638,8 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | 1 | Can a SIDE-QUEST leaf node connect directly to ESCAPE, or only MAIN-QUEST nodes are permitted to connect to ESCAPE? | Product | Closed — Only MAIN-QUEST nodes may connect to ESCAPE. Rule added to Tab 3 canvas validation. |
 | 2 | Do ROUND-END events fire automatically every round unconditionally, or can they have `required_event_ids` that gate when they begin firing? | Product | Deferred — behaviour is configurable; firing logic for ROUND-END to be defined in a later version. |
 | 3 | When `count > 1` on an event, must `event_completion_text` have exactly `count` entries, or is the last entry reused for remaining completions? | Product | Closed — minimum 1 entry required; last entry is reused for any completions beyond the number of entries provided. Updated Event Detail Popup field spec. |
-| 4 | Is there a game-over / knocked-out state separate from ESCAPE? If so, how is it triggered and what does the player see? | Product | Open |
-| 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Open |
+| 4 | Is there a game-over / knocked-out state separate from ESCAPE? If so, how is it triggered and what does the player see? | Product | Closed — no automated detection. App presents two self-report options at chapter end: "I Escaped" / "I was Knocked Out". Corresponding outro_text is shown. Tab 4 split into `outro_text_escaped` and `outro_text_knocked_out`. |
+| 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Closed — Yes. SIDE-QUEST and ROUND-END are both optional. A chapter with only MAIN-QUEST nodes leading to ESCAPE is valid. |
 | 6 | Should multiple incoming edges to an event use AND logic (all must complete) or OR logic (any one suffices), or should the author be able to choose per event? | Product | Open |
 | 7 | What is the format of the `grades` list in Tab 4 — is it score threshold ranges (e.g. A ≥ 150, B ≥ 100) or a different structure? | Product | Open |
 | 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Open |

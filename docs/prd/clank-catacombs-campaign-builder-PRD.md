@@ -661,10 +661,6 @@ Any `.json` file can be selected for import. The app runs a validation pass befo
 └────────────────────────────────────────────┘
 ```
 
-### 6.3 Sharing Format
-
-Campaigns can also be shared as a **base64-encoded URL parameter** for single-click load without file handling — useful for sharing via message or QR code.
-
 ---
 
 ## 7. Non-Functional Requirements
@@ -706,7 +702,7 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Closed — no published schema file. Import validation is handled entirely within the app. Full validation rules and error UX added to section 6.2. |
 | 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Closed — no undo feature. Event completions are final. |
 | 11 | Is `starting_map` in the Chapter Setup a free-text description, or will a structured map editor be added in a later version? | Product | Closed — free text for v1.1. Structured map selection UI planned for a future version. Tab 2 field updated with note. |
-| 12 | When a campaign is shared via base64 URL, is there a size limit concern for campaigns with many chapters and events? | Engineering | Open |
+| 12 | When a campaign is shared via base64 URL, is there a size limit concern for campaigns with many chapters and events? | Engineering | Closed — URL sharing not needed. Campaigns are shared exclusively via JSON file export/import. Section 6.3 removed from PRD. |
 
 ---
 

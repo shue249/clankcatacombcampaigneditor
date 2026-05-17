@@ -115,7 +115,8 @@ Chapter
 ├── events[] (ordered list of Event Instances)
 ├── scoring[]
 ├── grades[]              (label, min, max — non-overlapping, 0–999)
-└── outro_text (text — shown on escape/game-over)
+├── outro_text_escaped    (text — shown when player selects "I Escaped")
+└── outro_text_knocked_out (text — shown when player selects "I was Knocked Out")
 ```
 
 **Event** (a configured event placed in a chapter):
@@ -139,7 +140,8 @@ Event
 | State management | Zustand or Redux | Campaign state needs to persist across Player session |
 | Storage | Browser localStorage + JSON export | No backend required for v1.0; campaigns are files |
 | Styling | Tailwind CSS | Rapid iteration; design system feasible |
-| Drag-and-drop (Creator) | dnd-kit | For reordering events in chapter flow |
+| Event graph canvas | React Flow (@xyflow/react) | Node-based DAG editor — drag, connect, and position events visually |
+| Drag-and-drop (toolbar) | dnd-kit | Drag event types from toolbar onto the React Flow canvas |
 | Persistence | File download/upload (JSON) | Simple sharing model |
 
 ---
@@ -618,11 +620,9 @@ Overall campaign grade shown after all chapters complete.
 ### 6.1 Export
 
 A campaign can be exported as a single `.json` file conforming to the campaign data model. The file includes:
-- All campaign metadata
-- All chapter configurations
-- All event instances with their full config
-- All flavor texts
-- All extras definitions
+- All campaign metadata (name, description, author)
+- All chapter configurations (story, setup, scoring, grades, outro texts)
+- All event instances with their full config (category, name, count, completion texts, edges)
 
 ### 6.2 Import
 
@@ -691,18 +691,7 @@ Any `.json` file can be selected for import. The app runs a validation pass befo
 
 | # | Question | Owner | Status |
 |---|---|---|---|
-| 1 | Can a SIDE-QUEST leaf node connect directly to ESCAPE, or only MAIN-QUEST nodes are permitted to connect to ESCAPE? | Product | Closed — Only MAIN-QUEST nodes may connect to ESCAPE. Rule added to Tab 3 canvas validation. |
-| 2 | Do ROUND-END events fire automatically every round unconditionally, or can they have `required_event_ids` that gate when they begin firing? | Product | Deferred — behaviour is configurable; firing logic for ROUND-END to be defined in a later version. |
-| 3 | When `count > 1` on an event, must `event_completion_text` have exactly `count` entries, or is the last entry reused for remaining completions? | Product | Closed — minimum 1 entry required; last entry is reused for any completions beyond the number of entries provided. Updated Event Detail Popup field spec. |
-| 4 | Is there a game-over / knocked-out state separate from ESCAPE? If so, how is it triggered and what does the player see? | Product | Closed — no automated detection. App presents two self-report options at chapter end: "I Escaped" / "I was Knocked Out". Corresponding outro_text is shown. Tab 4 split into `outro_text_escaped` and `outro_text_knocked_out`. |
-| 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Closed — Yes. SIDE-QUEST and ROUND-END are both optional. A chapter with only MAIN-QUEST nodes leading to ESCAPE is valid. |
-| 6 | Should multiple incoming edges to an event use AND logic (all must complete) or OR logic (any one suffices), or should the author be able to choose per event? | Product | Closed — AND logic. All incoming edges must be completed before the target event unlocks. Already documented in Tab 3 edge spec. |
-| 7 | What is the format of the `grades` list in Tab 4 — is it score threshold ranges (e.g. A ≥ 150, B ≥ 100) or a different structure? | Product | Closed — min-max ranges per grade label, no overlapping, scores 0–999. Gap scores shown as "Ungraded". Grade format spec and validation rules added to Tab 4. Chapter data model updated. |
-| 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Closed — canvas always restores author's last positions. An opt-in "Auto-layout" button in the toolbar arranges nodes into a clean top-to-bottom DAG on demand. Added to Tab 3 canvas controls. |
-| 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Closed — no published schema file. Import validation is handled entirely within the app. Full validation rules and error UX added to section 6.2. |
-| 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Closed — no undo feature. Event completions are final. |
-| 11 | Is `starting_map` in the Chapter Setup a free-text description, or will a structured map editor be added in a later version? | Product | Closed — free text for v1.1. Structured map selection UI planned for a future version. Tab 2 field updated with note. |
-| 12 | When a campaign is shared via base64 URL, is there a size limit concern for campaigns with many chapters and events? | Engineering | Closed — URL sharing not needed. Campaigns are shared exclusively via JSON file export/import. Section 6.3 removed from PRD. |
+| 1 | Do ROUND-END events fire automatically every round unconditionally, or can they have `required_event_ids` that gate when they begin firing? | Product | Deferred — behaviour is configurable; firing logic for ROUND-END to be defined in a later version. |
 
 ---
 

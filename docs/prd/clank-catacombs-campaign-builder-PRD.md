@@ -623,7 +623,7 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | # | Question | Owner | Status |
 |---|---|---|---|
 | 1 | Can a SIDE-QUEST leaf node connect directly to ESCAPE, or only MAIN-QUEST nodes are permitted to connect to ESCAPE? | Product | Closed — Only MAIN-QUEST nodes may connect to ESCAPE. Rule added to Tab 3 canvas validation. |
-| 2 | Do ROUND-END events fire automatically every round unconditionally, or can they have `required_event_ids` that gate when they begin firing? | Product | Open |
+| 2 | Do ROUND-END events fire automatically every round unconditionally, or can they have `required_event_ids` that gate when they begin firing? | Product | Deferred — behaviour is configurable; firing logic for ROUND-END to be defined in a later version. |
 | 3 | When `count > 1` on an event, must `event_completion_text` have exactly `count` entries, or is the last entry reused for remaining completions? | Product | Open |
 | 4 | Is there a game-over / knocked-out state separate from ESCAPE? If so, how is it triggered and what does the player see? | Product | Open |
 | 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Open |

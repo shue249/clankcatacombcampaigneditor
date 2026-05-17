@@ -22,5 +22,14 @@ export function useCampaignEditor(id) {
     updateCampaign(id, { chapters })
   }
 
-  return { campaign, updateSettings, addChapter, updateChapter }
+  function deleteChapter(chapterNumber) {
+    const chapters = campaign?.chapters ?? []
+    if (chapters.length <= 1) return
+    const remaining = chapters
+      .filter((ch) => ch.chapter_number !== chapterNumber)
+      .map((ch, i) => ({ ...ch, chapter_number: i + 1 }))
+    updateCampaign(id, { chapters: remaining })
+  }
+
+  return { campaign, updateSettings, addChapter, updateChapter, deleteChapter }
 }

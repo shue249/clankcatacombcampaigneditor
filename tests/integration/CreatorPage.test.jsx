@@ -90,7 +90,7 @@ describe('CreatorPage', () => {
 
   it('clicking a chapter in sidebar shows that chapter panel', async () => {
     renderCreatorPage()
-    await userEvent.click(screen.getByRole('button', { name: /chapter 1/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^chapter 1$/i }))
     expect(screen.getByRole('tab', { name: /story/i })).toBeInTheDocument()
   })
 
@@ -125,10 +125,69 @@ describe('CreatorPage', () => {
 
   it('updating chapter title in Story tab updates the sidebar label', async () => {
     renderCreatorPage()
-    await userEvent.type(screen.getByLabelText(/chapter title/i), 'Saving the boss')
+    await userEvent.type(screen.getByLabelText(/^title$/i), 'Saving the boss')
     await userEvent.tab()
     expect(useCampaignStore.getState().campaigns[0].chapters[0].title).toBe('Saving the boss')
     expect(screen.getByRole('button', { name: /chapter 1 - saving the boss/i })).toBeInTheDocument()
+  })
+
+  it('shows a delete button for each chapter', () => {
+    renderCreatorPage()
+    expect(screen.getByRole('button', { name: /delete chapter 1/i })).toBeInTheDocument()
+  })
+
+  it('delete button is disabled when only one chapter exists', () => {
+    renderCreatorPage()
+    expect(screen.getByRole('button', { name: /delete chapter 1/i })).toBeDisabled()
+  })
+
+  it('delete button is enabled when multiple chapters exist', async () => {
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: /add chapter/i }))
+    expect(screen.getByRole('button', { name: /delete chapter 1/i })).not.toBeDisabled()
+  })
+
+  it('clicking delete trash icon opens a confirmation dialog', async () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: /delete chapter 2/i }))
+    expect(screen.getByRole('button', { name: /^delete$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^cancel$/i })).toBeInTheDocument()
+  })
+
+  it('clicking Cancel in confirmation dialog does not delete the chapter', async () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: /delete chapter 2/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(screen.getByRole('button', { name: /^chapter 2$/i })).toBeInTheDocument()
+    expect(useCampaignStore.getState().campaigns[0].chapters).toHaveLength(2)
+  })
+
+  it('clicking delete removes the chapter from the sidebar after confirmation', async () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: /delete chapter 2/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    expect(screen.queryByRole('button', { name: /^chapter 2$/i })).not.toBeInTheDocument()
+    expect(useCampaignStore.getState().campaigns[0].chapters).toHaveLength(1)
+  })
+
+  it('deleting the selected chapter auto-selects the nearest chapter', async () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: /^chapter 2$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /delete chapter 2/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    expect(screen.getByRole('tab', { name: /story/i })).toBeInTheDocument()
   })
 
   it('shows correct title field when switching between chapters', async () => {
@@ -142,9 +201,9 @@ describe('CreatorPage', () => {
       }],
     })
     renderCreatorPage()
-    expect(screen.getByLabelText(/chapter title/i)).toHaveValue('First Chapter')
+    expect(screen.getByLabelText(/^title$/i)).toHaveValue('First Chapter')
     await userEvent.click(screen.getByRole('button', { name: /^chapter 2/i }))
-    expect(screen.getByLabelText(/chapter title/i)).toHaveValue('Second Chapter')
+    expect(screen.getByLabelText(/^title$/i)).toHaveValue('Second Chapter')
   })
 
   it('updates campaign name in store when settings field is blurred', async () => {

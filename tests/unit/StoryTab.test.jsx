@@ -6,14 +6,14 @@ import { StoryTab } from '../../src/components/StoryTab'
 const chapter = { chapter_number: 1, title: 'Into the Dark', intro_text: 'You enter the dungeon.', events: [] }
 
 describe('StoryTab', () => {
-  it('renders a Chapter Title field', () => {
+  it('renders a Title field', () => {
     render(<StoryTab chapter={chapter} onUpdate={() => {}} />)
-    expect(screen.getByLabelText(/chapter title/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^title$/i)).toBeInTheDocument()
   })
 
   it('pre-fills the title field with the chapter title', () => {
     render(<StoryTab chapter={chapter} onUpdate={() => {}} />)
-    expect(screen.getByLabelText(/chapter title/i)).toHaveValue('Into the Dark')
+    expect(screen.getByLabelText(/^title$/i)).toHaveValue('Into the Dark')
   })
 
   it('renders a Story field', () => {
@@ -28,13 +28,13 @@ describe('StoryTab', () => {
 
   it('shows an empty title field when chapter title is empty', () => {
     render(<StoryTab chapter={{ ...chapter, title: '' }} onUpdate={() => {}} />)
-    expect(screen.getByLabelText(/chapter title/i)).toHaveValue('')
+    expect(screen.getByLabelText(/^title$/i)).toHaveValue('')
   })
 
   it('calls onUpdate with new title when title field is blurred', async () => {
     const onUpdate = vi.fn()
     render(<StoryTab chapter={{ ...chapter, title: '' }} onUpdate={onUpdate} />)
-    await userEvent.type(screen.getByLabelText(/chapter title/i), 'Saving the boss')
+    await userEvent.type(screen.getByLabelText(/^title$/i), 'Saving the boss')
     await userEvent.tab()
     expect(onUpdate).toHaveBeenCalledWith({ title: 'Saving the boss' })
   })
@@ -50,7 +50,7 @@ describe('StoryTab', () => {
   it('does not call onUpdate when title is unchanged on blur', async () => {
     const onUpdate = vi.fn()
     render(<StoryTab chapter={chapter} onUpdate={onUpdate} />)
-    screen.getByLabelText(/chapter title/i).focus()
+    screen.getByLabelText(/^title$/i).focus()
     await userEvent.tab()
     expect(onUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ title: expect.anything() }))
   })

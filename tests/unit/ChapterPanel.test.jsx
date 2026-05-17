@@ -32,15 +32,15 @@ describe('ChapterPanel', () => {
     expect(screen.getByRole('tab', { name: /story/i })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('Story tab renders the Chapter Title field', () => {
+  it('Story tab renders the Title field', () => {
     render(<ChapterPanel chapter={chapter} onUpdateChapter={() => {}} />)
-    expect(screen.getByLabelText(/chapter title/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^title$/i)).toBeInTheDocument()
   })
 
   it('Story tab calls onUpdateChapter when title is blurred with a new value', async () => {
     const onUpdateChapter = vi.fn()
     render(<ChapterPanel chapter={chapter} onUpdateChapter={onUpdateChapter} />)
-    await userEvent.type(screen.getByLabelText(/chapter title/i), 'Saving the boss')
+    await userEvent.type(screen.getByLabelText(/^title$/i), 'Saving the boss')
     await userEvent.tab()
     expect(onUpdateChapter).toHaveBeenCalledWith({ title: 'Saving the boss' })
   })

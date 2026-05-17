@@ -292,7 +292,7 @@ Opens on create (drag-drop) and on edit (click an existing node). Contains:
 | name | Text (required) | Verb-form label shown during Play (e.g. "Defeat Skeleton") |
 | remainder_text | Textarea | Reminder shown on the Play screen while event is active |
 | count | Integer (min 1) | How many times the event must be completed; defaults to 1 |
-| event_completion_text | List of Text | One entry per completion step; first entry shown on completion 1, second on completion 2, etc. |
+| event_completion_text | List of Text (min 1) | At least 1 entry required. First entry shown on completion 1, second on completion 2, etc. If completions exceed the number of entries, the last entry is reused. |
 
 `event_id` is auto-generated. `category` is fixed by the type dragged. `required_event_ids` is set by drawing edges on the canvas, not entered manually.
 
@@ -624,7 +624,7 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 |---|---|---|---|
 | 1 | Can a SIDE-QUEST leaf node connect directly to ESCAPE, or only MAIN-QUEST nodes are permitted to connect to ESCAPE? | Product | Closed — Only MAIN-QUEST nodes may connect to ESCAPE. Rule added to Tab 3 canvas validation. |
 | 2 | Do ROUND-END events fire automatically every round unconditionally, or can they have `required_event_ids` that gate when they begin firing? | Product | Deferred — behaviour is configurable; firing logic for ROUND-END to be defined in a later version. |
-| 3 | When `count > 1` on an event, must `event_completion_text` have exactly `count` entries, or is the last entry reused for remaining completions? | Product | Open |
+| 3 | When `count > 1` on an event, must `event_completion_text` have exactly `count` entries, or is the last entry reused for remaining completions? | Product | Closed — minimum 1 entry required; last entry is reused for any completions beyond the number of entries provided. Updated Event Detail Popup field spec. |
 | 4 | Is there a game-over / knocked-out state separate from ESCAPE? If so, how is it triggered and what does the player see? | Product | Open |
 | 5 | Can a chapter have zero SIDE-QUEST events and zero ROUND-END events (i.e. only MAIN-QUEST nodes leading to ESCAPE)? | Product | Open |
 | 6 | Should multiple incoming edges to an event use AND logic (all must complete) or OR logic (any one suffices), or should the author be able to choose per event? | Product | Open |

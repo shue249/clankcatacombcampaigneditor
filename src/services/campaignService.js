@@ -1,7 +1,25 @@
 import { generateId } from './idService'
 
-export function buildNewCampaign({ name = '', description = '', author = '' } = {}) {
-  return { id: generateId(), name, description, author, chapters: [] }
+export function buildNewChapter(chapterNumber) {
+  return {
+    chapter_number: chapterNumber,
+    title: '',
+    outro_text_escaped: '',
+    outro_text_knocked_out_saved: '',
+    outro_text_knocked_out_depths: '',
+    events: [],
+    grades: [],
+  }
+}
+
+export function buildNewCampaign({ name = '', description = '', author = '', chapters } = {}) {
+  return {
+    id: generateId(),
+    name,
+    description,
+    author,
+    chapters: chapters ?? [buildNewChapter(1)],
+  }
 }
 
 export function exportCampaign(campaign) {

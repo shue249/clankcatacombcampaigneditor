@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { useCampaignEditor } from '../../src/hooks/useCampaignEditor'
 import { useCampaignStore } from '../../src/store/campaignStore'
+import { buildNewChapter } from '../../src/services/campaignService'
 
-const BASE = { id: 'c1', name: 'My Campaign', description: 'Desc', author: 'Alice', chapters: [] }
+const BASE = { id: 'c1', name: 'My Campaign', description: 'Desc', author: 'Alice', chapters: [buildNewChapter(1)] }
 
 beforeEach(() => {
   useCampaignStore.setState({ campaigns: [BASE] })
@@ -42,5 +43,20 @@ describe('useCampaignEditor', () => {
     const { result } = renderHook(() => useCampaignEditor('c1'))
     act(() => result.current.updateSettings({ name: 'Updated' }))
     expect(result.current.campaign.name).toBe('Updated')
+  })
+
+  it('addChapter appends a new chapter with the next chapter_number', () => {
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.addChapter())
+    expect(result.current.campaign.chapters).toHaveLength(2)
+    expect(result.current.campaign.chapters[1].chapter_number).toBe(2)
+    expect(result.current.campaign.chapters[1].title).toBe('')
+  })
+
+  it('addChapter on a campaign with no chapters starts at 1', () => {
+    useCampaignStore.setState({ campaigns: [{ ...BASE, chapters: [] }] })
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.addChapter())
+    expect(result.current.campaign.chapters[0].chapter_number).toBe(1)
   })
 })

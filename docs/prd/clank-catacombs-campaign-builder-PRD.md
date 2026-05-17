@@ -197,7 +197,7 @@ Configures the gameplay setup. Fields include:
 
 | Field | Type | Description |
 |---|---|---|
-| starting_map | TextArea |
+| starting_map | TextArea | Free-text description for now. Will become a structured map selection UI in a future version. |
 | starting_artifacts | List |
 | starting_tokens | List |
 | tile_deck | List |
@@ -705,7 +705,7 @@ Campaigns can also be shared as a **base64-encoded URL parameter** for single-cl
 | 8 | Should the canvas auto-layout nodes on first load (e.g. top-to-bottom DAG layout), or always start from wherever the author left them? | Engineering | Closed — canvas always restores author's last positions. An opt-in "Auto-layout" button in the toolbar arranges nodes into a clean top-to-bottom DAG on demand. Added to Tab 3 canvas controls. |
 | 9 | For import validation, should the app publish a JSON schema file so third-party tools can validate campaign files before import? | Engineering | Closed — no published schema file. Import validation is handled entirely within the app. Full validation rules and error UX added to section 6.2. |
 | 10 | Should a Player be able to undo an event completion during play (e.g. tapped the wrong button)? | Product | Closed — no undo feature. Event completions are final. |
-| 11 | Is `starting_map` in the Chapter Setup a free-text description, or will a structured map editor be added in a later version? | Product | Open |
+| 11 | Is `starting_map` in the Chapter Setup a free-text description, or will a structured map editor be added in a later version? | Product | Closed — free text for v1.1. Structured map selection UI planned for a future version. Tab 2 field updated with note. |
 | 12 | When a campaign is shared via base64 URL, is there a size limit concern for campaigns with many chapters and events? | Engineering | Open |
 
 ---

@@ -13,7 +13,7 @@ function chapterLabel(ch) {
 export function CreatorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { campaign, updateSettings, addChapter } = useCampaignEditor(id)
+  const { campaign, updateSettings, addChapter, updateChapter } = useCampaignEditor(id)
 
   const [selected, setSelected] = useState({ type: 'chapter', chapterNumber: 1 })
   const [savedFlash, setSavedFlash] = useState(false)
@@ -124,7 +124,11 @@ export function CreatorPage() {
             <CampaignSettings campaign={campaign} onUpdate={updateSettings} />
           )}
           {selected.type === 'chapter' && selectedChapter && (
-            <ChapterPanel chapter={selectedChapter} />
+            <ChapterPanel
+              key={selectedChapter.chapter_number}
+              chapter={selectedChapter}
+              onUpdateChapter={(fields) => updateChapter(selectedChapter.chapter_number, fields)}
+            />
           )}
         </main>
       </div>

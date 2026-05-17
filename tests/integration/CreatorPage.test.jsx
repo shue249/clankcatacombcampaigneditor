@@ -123,6 +123,30 @@ describe('CreatorPage', () => {
     expect(screen.getByRole('button', { name: /saved/i })).toBeInTheDocument()
   })
 
+  it('updating chapter title in Story tab updates the sidebar label', async () => {
+    renderCreatorPage()
+    await userEvent.type(screen.getByLabelText(/chapter title/i), 'Saving the boss')
+    await userEvent.tab()
+    expect(useCampaignStore.getState().campaigns[0].chapters[0].title).toBe('Saving the boss')
+    expect(screen.getByRole('button', { name: /chapter 1 - saving the boss/i })).toBeInTheDocument()
+  })
+
+  it('shows correct title field when switching between chapters', async () => {
+    useCampaignStore.setState({
+      campaigns: [{
+        ...BASE,
+        chapters: [
+          { ...buildNewChapter(1), title: 'First Chapter', intro_text: '' },
+          { ...buildNewChapter(2), title: 'Second Chapter', intro_text: '' },
+        ],
+      }],
+    })
+    renderCreatorPage()
+    expect(screen.getByLabelText(/chapter title/i)).toHaveValue('First Chapter')
+    await userEvent.click(screen.getByRole('button', { name: /^chapter 2/i }))
+    expect(screen.getByLabelText(/chapter title/i)).toHaveValue('Second Chapter')
+  })
+
   it('updates campaign name in store when settings field is blurred', async () => {
     renderCreatorPage()
     await userEvent.click(screen.getByRole('button', { name: /^settings$/i }))

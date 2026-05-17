@@ -15,5 +15,12 @@ export function useCampaignEditor(id) {
     updateCampaign(id, { chapters: [...chapters, buildNewChapter(nextNumber)] })
   }
 
-  return { campaign, updateSettings, addChapter }
+  function updateChapter(chapterNumber, fields) {
+    const chapters = (campaign?.chapters ?? []).map((ch) =>
+      ch.chapter_number === chapterNumber ? { ...ch, ...fields } : ch
+    )
+    updateCampaign(id, { chapters })
+  }
+
+  return { campaign, updateSettings, addChapter, updateChapter }
 }

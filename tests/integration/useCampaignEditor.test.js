@@ -59,4 +59,25 @@ describe('useCampaignEditor', () => {
     act(() => result.current.addChapter())
     expect(result.current.campaign.chapters[0].chapter_number).toBe(1)
   })
+
+  it('updateChapter updates a field on the matching chapter', () => {
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.updateChapter(1, { title: 'Into the Dark' }))
+    expect(result.current.campaign.chapters[0].title).toBe('Into the Dark')
+  })
+
+  it('updateChapter does not affect other chapters', () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.updateChapter(1, { title: 'First' }))
+    expect(result.current.campaign.chapters[1].title).toBe('')
+  })
+
+  it('updateChapter reflects change reactively in the campaign', () => {
+    const { result } = renderHook(() => useCampaignEditor('c1'))
+    act(() => result.current.updateChapter(1, { title: 'Reactive' }))
+    expect(result.current.campaign.chapters[0].title).toBe('Reactive')
+  })
 })

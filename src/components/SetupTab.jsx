@@ -172,7 +172,7 @@ export function SetupTab({ chapter, onUpdate }) {
           <label htmlFor="setup-instructions" className={labelClass}>Instructions</label>
           <textarea
             id="setup-instructions"
-            rows={4}
+            rows={12}
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             onBlur={() => handleTextBlur('instructions', instructions, chapter.instructions ?? '')}

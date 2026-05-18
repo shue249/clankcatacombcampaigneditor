@@ -40,7 +40,7 @@ export function StoryTab({ chapter, onUpdate }) {
         <textarea
           id="chapter-intro-text"
           value={introText}
-          rows={6}
+          rows={12}
           onChange={(e) => setIntroText(e.target.value)}
           onBlur={handleIntroTextBlur}
           placeholder="Story text shown to the player at the start of the chapter..."

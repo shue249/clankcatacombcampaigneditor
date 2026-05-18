@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { CardPickerModal } from './CardPickerModal'
+import { TokenPickerModal } from './TokenPickerModal'
 import { CARD_BY_ID } from '../data/cards'
+import { TOKEN_BY_ID } from '../data/tokens'
 
 const inputClass = 'w-full rounded bg-gray-700 border border-gray-600 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
 const labelClass = 'block text-sm text-gray-300 mb-1'
@@ -11,20 +13,41 @@ function toList(str) {
   return str.split('\n').map((s) => s.trim()).filter(Boolean)
 }
 
-function groupCardChips(cardIds) {
+function groupChips(ids, byId) {
   const groups = new Map()
-  for (const id of cardIds) {
-    const name = CARD_BY_ID[id]?.name ?? id
+  for (const id of ids) {
+    const name = byId[id]?.name ?? id
     if (!groups.has(name)) groups.set(name, [])
     groups.get(name).push(id)
   }
   return [...groups.entries()].map(([name, ids]) => ({ name, ids, count: ids.length }))
 }
 
+function TokenChips({ tokens, byId, onRemove }) {
+  if (tokens.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-2">
+      {groupChips(tokens, byId).map(({ name, ids, count }) => (
+        <span key={name} className="flex items-center gap-1.5 bg-gray-700 rounded px-2.5 py-1 text-sm text-white">
+          {count > 1 ? `${name} ×${count}` : name}
+          <button
+            aria-label={`Remove ${name}`}
+            onClick={() => onRemove(ids)}
+            className="text-gray-400 hover:text-white transition-colors leading-none"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export function SetupTab({ chapter, onUpdate }) {
   const [startingMap, setStartingMap] = useState(chapter.starting_map ?? '')
   const [startingArtifacts, setStartingArtifacts] = useState((chapter.starting_artifacts ?? []).join('\n'))
-  const [startingTokens, setStartingTokens] = useState((chapter.starting_tokens ?? []).join('\n'))
+  const [startingTokens, setStartingTokens] = useState(chapter.starting_tokens ?? [])
+  const [showStartingTokenPicker, setShowStartingTokenPicker] = useState(false)
   const [tileDeck, setTileDeck] = useState((chapter.tile_deck ?? []).join('\n'))
 
   const [playerClank, setPlayerClank] = useState(chapter.player_clank ?? 3)
@@ -43,7 +66,8 @@ export function SetupTab({ chapter, onUpdate }) {
   const [rageTrack, setRageTrack] = useState(chapter.rage_track ?? 3)
   const [setAsideCards, setSetAsideCards] = useState(chapter.set_aside_cards ?? [])
   const [showCardPicker, setShowCardPicker] = useState(false)
-  const [setAsideTokens, setSetAsideTokens] = useState((chapter.set_aside_tokens ?? []).join('\n'))
+  const [setAsideTokens, setSetAsideTokens] = useState(chapter.set_aside_tokens ?? [])
+  const [showSetAsideTokenPicker, setShowSetAsideTokenPicker] = useState(false)
   const [instructions, setInstructions] = useState(chapter.instructions ?? '')
 
   function handleTextBlur(field, value, original) {
@@ -89,24 +113,56 @@ export function SetupTab({ chapter, onUpdate }) {
             className={inputClass + ' resize-none'}
           />
         </div>
-        {[
-          { id: 'setup-starting-artifacts', label: 'Starting Artifacts', value: startingArtifacts, set: setStartingArtifacts, field: 'starting_artifacts', orig: chapter.starting_artifacts ?? [] },
-          { id: 'setup-starting-tokens',    label: 'Starting Tokens',    value: startingTokens,    set: setStartingTokens,    field: 'starting_tokens',    orig: chapter.starting_tokens ?? [] },
-          { id: 'setup-tile-deck',          label: 'Tile Deck',          value: tileDeck,          set: setTileDeck,          field: 'tile_deck',          orig: chapter.tile_deck ?? [] },
-        ].map(({ id, label, value, set, field, orig }) => (
-          <div key={id}>
-            <label htmlFor={id} className={labelClass}>{label}</label>
-            <textarea
-              id={id}
-              rows={3}
-              value={value}
-              onChange={(e) => set(e.target.value)}
-              onBlur={() => handleListBlur(field, value, orig)}
-              placeholder="One item per line"
-              className={inputClass + ' resize-none'}
-            />
+
+        {/* Starting Artifacts — free text */}
+        <div>
+          <label htmlFor="setup-starting-artifacts" className={labelClass}>Starting Artifacts</label>
+          <textarea
+            id="setup-starting-artifacts"
+            rows={3}
+            value={startingArtifacts}
+            onChange={(e) => setStartingArtifacts(e.target.value)}
+            onBlur={() => handleListBlur('starting_artifacts', startingArtifacts, chapter.starting_artifacts ?? [])}
+            placeholder="One item per line"
+            className={inputClass + ' resize-none'}
+          />
+        </div>
+
+        {/* Starting Tokens — token picker */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className={labelClass}>Starting Tokens</span>
+            <button
+              onClick={() => setShowStartingTokenPicker(true)}
+              className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+            >
+              Add Tokens
+            </button>
           </div>
-        ))}
+          <TokenChips
+            tokens={startingTokens}
+            byId={TOKEN_BY_ID}
+            onRemove={(ids) => {
+              const updated = startingTokens.filter((id) => !ids.includes(id))
+              setStartingTokens(updated)
+              onUpdate({ starting_tokens: updated })
+            }}
+          />
+        </div>
+
+        {/* Tile Deck — free text */}
+        <div>
+          <label htmlFor="setup-tile-deck" className={labelClass}>Tile Deck</label>
+          <textarea
+            id="setup-tile-deck"
+            rows={3}
+            value={tileDeck}
+            onChange={(e) => setTileDeck(e.target.value)}
+            onBlur={() => handleListBlur('tile_deck', tileDeck, chapter.tile_deck ?? [])}
+            placeholder="One item per line"
+            className={inputClass + ' resize-none'}
+          />
+        </div>
       </section>
 
       {/* Group 2 — Difficulty */}
@@ -171,54 +227,39 @@ export function SetupTab({ chapter, onUpdate }) {
               Add Cards
             </button>
           </div>
-          {setAsideCards.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {groupCardChips(setAsideCards).map(({ name, ids, count }) => (
-                <span key={name} className="flex items-center gap-1.5 bg-gray-700 rounded px-2.5 py-1 text-sm text-white">
-                  {count > 1 ? `${name} ×${count}` : name}
-                  <button
-                    aria-label={`Remove ${name}`}
-                    onClick={() => {
-                      const updated = setAsideCards.filter((id) => !ids.includes(id))
-                      setSetAsideCards(updated)
-                      onUpdate({ set_aside_cards: updated })
-                    }}
-                    className="text-gray-400 hover:text-white transition-colors leading-none"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
+          <TokenChips
+            tokens={setAsideCards}
+            byId={CARD_BY_ID}
+            onRemove={(ids) => {
+              const updated = setAsideCards.filter((id) => !ids.includes(id))
+              setSetAsideCards(updated)
+              onUpdate({ set_aside_cards: updated })
+            }}
+          />
         </div>
 
-        {/* Set Aside Tokens — free-text textarea */}
+        {/* Set Aside Tokens — token picker */}
         <div>
-          <label htmlFor="setup-set-aside-tokens" className={labelClass}>Set Aside Tokens</label>
-          <textarea
-            id="setup-set-aside-tokens"
-            rows={3}
-            value={setAsideTokens}
-            onChange={(e) => setSetAsideTokens(e.target.value)}
-            onBlur={() => handleListBlur('set_aside_tokens', setAsideTokens, chapter.set_aside_tokens ?? [])}
-            placeholder="One item per line"
-            className={inputClass + ' resize-none'}
+          <div className="flex items-center justify-between mb-2">
+            <span className={labelClass}>Set Aside Tokens</span>
+            <button
+              onClick={() => setShowSetAsideTokenPicker(true)}
+              className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+            >
+              Add Tokens
+            </button>
+          </div>
+          <TokenChips
+            tokens={setAsideTokens}
+            byId={TOKEN_BY_ID}
+            onRemove={(ids) => {
+              const updated = setAsideTokens.filter((id) => !ids.includes(id))
+              setSetAsideTokens(updated)
+              onUpdate({ set_aside_tokens: updated })
+            }}
           />
         </div>
       </section>
-
-      {showCardPicker && (
-        <CardPickerModal
-          selectedCards={setAsideCards}
-          onDone={(cards) => {
-            setSetAsideCards(cards)
-            setShowCardPicker(false)
-            onUpdate({ set_aside_cards: cards })
-          }}
-          onCancel={() => setShowCardPicker(false)}
-        />
-      )}
 
       {/* Group 5 — Starting Instructions */}
       <section className={sectionClass}>
@@ -236,6 +277,32 @@ export function SetupTab({ chapter, onUpdate }) {
           />
         </div>
       </section>
+
+      {showCardPicker && (
+        <CardPickerModal
+          selectedCards={setAsideCards}
+          onDone={(cards) => { setSetAsideCards(cards); setShowCardPicker(false); onUpdate({ set_aside_cards: cards }) }}
+          onCancel={() => setShowCardPicker(false)}
+        />
+      )}
+
+      {showStartingTokenPicker && (
+        <TokenPickerModal
+          title="Starting Tokens"
+          selectedTokens={startingTokens}
+          onDone={(tokens) => { setStartingTokens(tokens); setShowStartingTokenPicker(false); onUpdate({ starting_tokens: tokens }) }}
+          onCancel={() => setShowStartingTokenPicker(false)}
+        />
+      )}
+
+      {showSetAsideTokenPicker && (
+        <TokenPickerModal
+          title="Set Aside Tokens"
+          selectedTokens={setAsideTokens}
+          onDone={(tokens) => { setSetAsideTokens(tokens); setShowSetAsideTokenPicker(false); onUpdate({ set_aside_tokens: tokens }) }}
+          onCancel={() => setShowSetAsideTokenPicker(false)}
+        />
+      )}
 
     </div>
   )

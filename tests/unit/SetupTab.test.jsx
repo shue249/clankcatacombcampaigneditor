@@ -7,7 +7,7 @@ const chapter = {
   chapter_number: 1,
   starting_map: 'Forest path',
   starting_artifacts: ['Sword', 'Shield'],
-  starting_tokens: ['Gold coin'],
+  starting_tokens: ['lockpick_1'],
   tile_deck: ['Forest', 'Cave'],
   player_clank: 3,
   rival_clank: 3,
@@ -23,7 +23,7 @@ const chapter = {
   ghost_clank_brutal: 1,
   rage_track: 3,
   set_aside_cards: ['skeleton_1'],
-  set_aside_tokens: ['Dragon token'],
+  set_aside_tokens: ['monkey_idol_1'],
   instructions: 'Set up the board',
 }
 
@@ -41,10 +41,9 @@ describe('SetupTab', () => {
   it('renders list fields', () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
     expect(screen.getByLabelText(/starting artifacts/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/starting tokens/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/tile deck/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add cards/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/set aside tokens/i)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /add tokens/i })).toHaveLength(2)
   })
 
   it('pre-filled set_aside_cards appear as removable chips using card name', () => {
@@ -74,7 +73,6 @@ describe('SetupTab', () => {
   it('opening the modal does not pre-check cards not in Set Aside Cards', async () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
     await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
-    // skeleton_2 and skeleton_3 are not in set_aside_cards
     expect(screen.getByRole('checkbox', { name: /^skeleton #2$/i })).not.toBeChecked()
     expect(screen.getByRole('checkbox', { name: /^skeleton #3$/i })).not.toBeChecked()
   })
@@ -108,7 +106,6 @@ describe('SetupTab', () => {
   it('pre-fills list fields as one item per line', () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
     expect(screen.getByLabelText(/starting artifacts/i)).toHaveValue('Sword\nShield')
-    expect(screen.getByLabelText(/starting tokens/i)).toHaveValue('Gold coin')
   })
 
   it('renders Normal, Hard and Brutal difficulty columns', () => {
@@ -217,5 +214,119 @@ describe('SetupTab', () => {
     screen.getByLabelText(/player clank normal/i).focus()
     await userEvent.tab()
     expect(onUpdate).not.toHaveBeenCalled()
+  })
+
+  // Starting Tokens
+  it('pre-filled starting_tokens appear as removable chips using token name', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByText('Lockpick')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /remove lockpick/i })).toBeInTheDocument()
+  })
+
+  it('clicking the remove button on a starting token chip calls onUpdate with token removed', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={chapter} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /remove lockpick/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ starting_tokens: [] })
+  })
+
+  it('clicking Add Tokens (first) opens the starting token picker modal', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const [firstAddTokens] = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(firstAddTokens)
+    expect(screen.getByRole('heading', { name: /^starting tokens$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^done$/i })).toBeInTheDocument()
+  })
+
+  it('starting token modal pre-checks tokens already in starting_tokens', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const [firstAddTokens] = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(firstAddTokens)
+    expect(screen.getByRole('checkbox', { name: /^lockpick #1$/i })).toBeChecked()
+  })
+
+  it('starting token modal does not pre-check tokens not in starting_tokens', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const [firstAddTokens] = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(firstAddTokens)
+    expect(screen.getByRole('checkbox', { name: /^lockpick #2$/i })).not.toBeChecked()
+  })
+
+  it('calls onUpdate with selected token ids when starting token modal Done is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, starting_tokens: [] }} onUpdate={onUpdate} />)
+    const [firstAddTokens] = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(firstAddTokens)
+    await userEvent.click(screen.getByRole('checkbox', { name: /^lockpick #1$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^done$/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ starting_tokens: ['lockpick_1'] })
+  })
+
+  it('starting token modal closes without calling onUpdate when Cancel is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, starting_tokens: [] }} onUpdate={onUpdate} />)
+    const [firstAddTokens] = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(firstAddTokens)
+    await userEvent.click(screen.getByRole('checkbox', { name: /^lockpick #1$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /^done$/i })).not.toBeInTheDocument()
+  })
+
+  // Set Aside Tokens
+  it('pre-filled set_aside_tokens appear as removable chips using token name', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByText('Monkey Idol')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /remove monkey idol/i })).toBeInTheDocument()
+  })
+
+  it('clicking the remove button on a set aside token chip calls onUpdate with token removed', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={chapter} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /remove monkey idol/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ set_aside_tokens: [] })
+  })
+
+  it('clicking Add Tokens (second) opens the set aside token picker modal', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const addTokenButtons = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(addTokenButtons[1])
+    expect(screen.getByRole('heading', { name: /^set aside tokens$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^done$/i })).toBeInTheDocument()
+  })
+
+  it('set aside token modal pre-checks tokens already in set_aside_tokens', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const addTokenButtons = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(addTokenButtons[1])
+    expect(screen.getByRole('checkbox', { name: /^monkey idol #1$/i })).toBeChecked()
+  })
+
+  it('set aside token modal does not pre-check tokens not in set_aside_tokens', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const addTokenButtons = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(addTokenButtons[1])
+    expect(screen.getByRole('checkbox', { name: /^monkey idol #2$/i })).not.toBeChecked()
+  })
+
+  it('calls onUpdate with selected token ids when set aside token modal Done is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, set_aside_tokens: [] }} onUpdate={onUpdate} />)
+    const addTokenButtons = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(addTokenButtons[1])
+    await userEvent.click(screen.getByRole('checkbox', { name: /^monkey idol #1$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^done$/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ set_aside_tokens: ['monkey_idol_1'] })
+  })
+
+  it('set aside token modal closes without calling onUpdate when Cancel is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, set_aside_tokens: [] }} onUpdate={onUpdate} />)
+    const addTokenButtons = screen.getAllByRole('button', { name: /add tokens/i })
+    await userEvent.click(addTokenButtons[1])
+    await userEvent.click(screen.getByRole('checkbox', { name: /^monkey idol #1$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /^done$/i })).not.toBeInTheDocument()
   })
 })

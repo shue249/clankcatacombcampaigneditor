@@ -254,6 +254,83 @@ describe('SetupTab', () => {
     expect(onUpdate).not.toHaveBeenCalled()
   })
 
+  // Numeric field limits
+  it('rage track input has min=1 and max=7', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    const input = screen.getByLabelText(/rage track/i)
+    expect(input).toHaveAttribute('min', '1')
+    expect(input).toHaveAttribute('max', '7')
+  })
+
+  it('player clank inputs have min=0 and max=30', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByLabelText(/player clank normal/i)).toHaveAttribute('min', '0')
+    expect(screen.getByLabelText(/player clank normal/i)).toHaveAttribute('max', '30')
+    expect(screen.getByLabelText(/player clank hard/i)).toHaveAttribute('max', '30')
+    expect(screen.getByLabelText(/player clank brutal/i)).toHaveAttribute('max', '30')
+  })
+
+  it('rival clank inputs have min=0 and max=30', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByLabelText(/rival clank normal/i)).toHaveAttribute('max', '30')
+    expect(screen.getByLabelText(/rival clank hard/i)).toHaveAttribute('max', '30')
+    expect(screen.getByLabelText(/rival clank brutal/i)).toHaveAttribute('max', '30')
+  })
+
+  it('dragon clank inputs have min=0 and max=24', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByLabelText(/dragon clank normal/i)).toHaveAttribute('max', '24')
+    expect(screen.getByLabelText(/dragon clank hard/i)).toHaveAttribute('max', '24')
+    expect(screen.getByLabelText(/dragon clank brutal/i)).toHaveAttribute('max', '24')
+  })
+
+  it('ghost clank inputs have min=0 and max=5', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByLabelText(/ghost clank normal/i)).toHaveAttribute('max', '5')
+    expect(screen.getByLabelText(/ghost clank hard/i)).toHaveAttribute('max', '5')
+    expect(screen.getByLabelText(/ghost clank brutal/i)).toHaveAttribute('max', '5')
+  })
+
+  it('clamps player clank above max to 30 on blur and updates display', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, player_clank: 0 }} onUpdate={onUpdate} />)
+    await userEvent.clear(screen.getByLabelText(/player clank normal/i))
+    await userEvent.type(screen.getByLabelText(/player clank normal/i), '99')
+    await userEvent.tab()
+    expect(onUpdate).toHaveBeenCalledWith({ player_clank: 30 })
+    expect(screen.getByLabelText(/player clank normal/i)).toHaveValue(30)
+  })
+
+  it('clamps ghost clank above max to 5 on blur and updates display', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, ghost_clank: 0 }} onUpdate={onUpdate} />)
+    await userEvent.clear(screen.getByLabelText(/ghost clank normal/i))
+    await userEvent.type(screen.getByLabelText(/ghost clank normal/i), '10')
+    await userEvent.tab()
+    expect(onUpdate).toHaveBeenCalledWith({ ghost_clank: 5 })
+    expect(screen.getByLabelText(/ghost clank normal/i)).toHaveValue(5)
+  })
+
+  it('clamps rage track above max to 7 on blur and updates display', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, rage_track: 3 }} onUpdate={onUpdate} />)
+    await userEvent.clear(screen.getByLabelText(/rage track/i))
+    await userEvent.type(screen.getByLabelText(/rage track/i), '10')
+    await userEvent.tab()
+    expect(onUpdate).toHaveBeenCalledWith({ rage_track: 7 })
+    expect(screen.getByLabelText(/rage track/i)).toHaveValue(7)
+  })
+
+  it('clamps rage track below min to 1 on blur and updates display', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, rage_track: 3 }} onUpdate={onUpdate} />)
+    await userEvent.clear(screen.getByLabelText(/rage track/i))
+    await userEvent.type(screen.getByLabelText(/rage track/i), '0')
+    await userEvent.tab()
+    expect(onUpdate).toHaveBeenCalledWith({ rage_track: 1 })
+    expect(screen.getByLabelText(/rage track/i)).toHaveValue(1)
+  })
+
   // Starting Tokens
   it('pre-filled starting_tokens appear as removable chips using token name', () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)

@@ -206,6 +206,25 @@ describe('CreatorPage', () => {
     expect(screen.getByLabelText(/^title$/i)).toHaveValue('Second Chapter')
   })
 
+  it('retains the active tab when switching between chapters', async () => {
+    useCampaignStore.setState({
+      campaigns: [{ ...BASE, chapters: [buildNewChapter(1), buildNewChapter(2)] }],
+    })
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('tab', { name: /setup/i }))
+    expect(screen.getByRole('tab', { name: /setup/i })).toHaveAttribute('aria-selected', 'true')
+    await userEvent.click(screen.getByRole('button', { name: /^chapter 2$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^chapter 1$/i }))
+    expect(screen.getByRole('tab', { name: /setup/i })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('new chapters default to Story tab even if another chapter is on a different tab', async () => {
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('tab', { name: /setup/i }))
+    await userEvent.click(screen.getByRole('button', { name: /add chapter/i }))
+    expect(screen.getByRole('tab', { name: /story/i })).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('updates campaign name in store when settings field is blurred', async () => {
     renderCreatorPage()
     await userEvent.click(screen.getByRole('button', { name: /^settings$/i }))

@@ -25,6 +25,49 @@ describe('buildNewChapter', () => {
     expect(ch.grades).toEqual([])
   })
 
+  it('includes starting_map and instructions as empty strings', () => {
+    const ch = buildNewChapter(1)
+    expect(ch.starting_map).toBe('')
+    expect(ch.instructions).toBe('')
+  })
+
+  it('includes list setup fields as empty arrays', () => {
+    const ch = buildNewChapter(1)
+    expect(ch.starting_artifacts).toEqual([])
+    expect(ch.starting_tokens).toEqual([])
+    expect(ch.tile_deck).toEqual([])
+    expect(ch.set_aside_cards).toEqual([])
+    expect(ch.set_aside_tokens).toEqual([])
+  })
+
+  it('includes Normal clank defaults', () => {
+    const ch = buildNewChapter(1)
+    expect(ch.player_clank).toBe(3)
+    expect(ch.rival_clank).toBe(3)
+    expect(ch.dragon_clank).toBe(0)
+    expect(ch.ghost_clank).toBe(0)
+  })
+
+  it('includes Hard clank defaults', () => {
+    const ch = buildNewChapter(1)
+    expect(ch.player_clank_hard).toBe(3)
+    expect(ch.rival_clank_hard).toBe(3)
+    expect(ch.dragon_clank_hard).toBe(4)
+    expect(ch.ghost_clank_hard).toBe(0)
+  })
+
+  it('includes Brutal clank defaults', () => {
+    const ch = buildNewChapter(1)
+    expect(ch.player_clank_brutal).toBe(3)
+    expect(ch.rival_clank_brutal).toBe(3)
+    expect(ch.dragon_clank_brutal).toBe(6)
+    expect(ch.ghost_clank_brutal).toBe(1)
+  })
+
+  it('includes rage track defaulting to 3', () => {
+    expect(buildNewChapter(1).rage_track).toBe(3)
+  })
+
   it('chapter_number reflects the argument passed in', () => {
     expect(buildNewChapter(3).chapter_number).toBe(3)
   })

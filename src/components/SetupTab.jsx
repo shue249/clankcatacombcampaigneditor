@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { CardPickerModal } from './CardPickerModal'
+import { CARD_BY_ID } from '../data/cards'
 
 const inputClass = 'w-full rounded bg-gray-700 border border-gray-600 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
 const labelClass = 'block text-sm text-gray-300 mb-1'
@@ -8,6 +9,16 @@ const headingClass = 'text-sm font-semibold text-gray-400 uppercase tracking-wid
 
 function toList(str) {
   return str.split('\n').map((s) => s.trim()).filter(Boolean)
+}
+
+function groupCardChips(cardIds) {
+  const groups = new Map()
+  for (const id of cardIds) {
+    const name = CARD_BY_ID[id]?.name ?? id
+    if (!groups.has(name)) groups.set(name, [])
+    groups.get(name).push(id)
+  }
+  return [...groups.entries()].map(([name, ids]) => ({ name, ids, count: ids.length }))
 }
 
 export function SetupTab({ chapter, onUpdate }) {
@@ -162,13 +173,13 @@ export function SetupTab({ chapter, onUpdate }) {
           </div>
           {setAsideCards.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {setAsideCards.map((name) => (
+              {groupCardChips(setAsideCards).map(({ name, ids, count }) => (
                 <span key={name} className="flex items-center gap-1.5 bg-gray-700 rounded px-2.5 py-1 text-sm text-white">
-                  {name}
+                  {count > 1 ? `${name} ×${count}` : name}
                   <button
                     aria-label={`Remove ${name}`}
                     onClick={() => {
-                      const updated = setAsideCards.filter((n) => n !== name)
+                      const updated = setAsideCards.filter((id) => !ids.includes(id))
                       setSetAsideCards(updated)
                       onUpdate({ set_aside_cards: updated })
                     }}

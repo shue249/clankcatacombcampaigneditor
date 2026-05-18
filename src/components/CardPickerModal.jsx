@@ -7,17 +7,18 @@ export function CardPickerModal({ selectedCards, onDone, onCancel }) {
   const [selected, setSelected] = useState(() => new Set(selectedCards))
 
   const filtered = CARDS.filter((card) => {
-    const matchesSearch = !search || card.name.toLowerCase().includes(search.toLowerCase())
-    const effectiveType = card.type || 'Action'
+    const displayName = card.total > 1 ? `${card.name} #${card.copy}` : card.name
+    const matchesSearch = !search || displayName.toLowerCase().includes(search.toLowerCase())
+    const effectiveType = card.type || 'Others'
     const matchesType = typeFilter === 'All' || effectiveType === typeFilter
     return matchesSearch && matchesType
   })
 
-  function toggle(name) {
+  function toggle(id) {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
@@ -53,24 +54,27 @@ export function CardPickerModal({ selectedCards, onDone, onCancel }) {
         </div>
 
         <div className="overflow-y-auto flex-1 p-2">
-          {filtered.map((card) => (
-            <label
-              key={card.name}
-              className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-800 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                aria-label={card.name}
-                checked={selected.has(card.name)}
-                onChange={() => toggle(card.name)}
-                className="accent-indigo-500 w-4 h-4 shrink-0"
-              />
-              <span className="text-sm text-white flex-1">{card.name}</span>
-              {card.type && (
-                <span className="text-xs text-gray-500">{card.type}</span>
-              )}
-            </label>
-          ))}
+          {filtered.map((card) => {
+            const displayName = card.total > 1 ? `${card.name} #${card.copy}` : card.name
+            return (
+              <label
+                key={card.id}
+                className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-800 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  aria-label={displayName}
+                  checked={selected.has(card.id)}
+                  onChange={() => toggle(card.id)}
+                  className="accent-indigo-500 w-4 h-4 shrink-0"
+                />
+                <span className="text-sm text-white flex-1">{displayName}</span>
+                {card.type && (
+                  <span className="text-xs text-gray-500">{card.type}</span>
+                )}
+              </label>
+            )
+          })}
         </div>
 
         <div className="flex justify-end gap-3 p-4 border-t border-gray-700 shrink-0">

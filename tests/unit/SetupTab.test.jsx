@@ -22,7 +22,7 @@ const chapter = {
   dragon_clank_brutal: 6,
   ghost_clank_brutal: 1,
   rage_track: 3,
-  set_aside_cards: ['Dragon card'],
+  set_aside_cards: ['skeleton_1'],
   set_aside_tokens: ['Dragon token'],
   instructions: 'Set up the board',
 }
@@ -47,17 +47,36 @@ describe('SetupTab', () => {
     expect(screen.getByLabelText(/set aside tokens/i)).toBeInTheDocument()
   })
 
-  it('pre-filled set_aside_cards appear as removable chips', () => {
+  it('pre-filled set_aside_cards appear as removable chips using card name', () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
-    expect(screen.getByText('Dragon card')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /remove dragon card/i })).toBeInTheDocument()
+    expect(screen.getByText('Skeleton')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /remove skeleton/i })).toBeInTheDocument()
   })
 
   it('clicking the remove button on a chip calls onUpdate with card removed', async () => {
     const onUpdate = vi.fn()
     render(<SetupTab chapter={chapter} onUpdate={onUpdate} />)
-    await userEvent.click(screen.getByRole('button', { name: /remove dragon card/i }))
+    await userEvent.click(screen.getByRole('button', { name: /remove skeleton/i }))
     expect(onUpdate).toHaveBeenCalledWith({ set_aside_cards: [] })
+  })
+
+  it('groups chips by name — selecting all 3 Skeleton copies shows Skeleton ×3', () => {
+    render(<SetupTab chapter={{ ...chapter, set_aside_cards: ['skeleton_1', 'skeleton_2', 'skeleton_3'] }} onUpdate={() => {}} />)
+    expect(screen.getByText('Skeleton ×3')).toBeInTheDocument()
+  })
+
+  it('opening the modal pre-checks cards already in Set Aside Cards', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
+    expect(screen.getByRole('checkbox', { name: /^skeleton #1$/i })).toBeChecked()
+  })
+
+  it('opening the modal does not pre-check cards not in Set Aside Cards', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
+    // skeleton_2 and skeleton_3 are not in set_aside_cards
+    expect(screen.getByRole('checkbox', { name: /^skeleton #2$/i })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /^skeleton #3$/i })).not.toBeChecked()
   })
 
   it('clicking Add Cards opens the card picker modal', async () => {
@@ -67,20 +86,20 @@ describe('SetupTab', () => {
     expect(screen.getByRole('button', { name: /^cancel$/i })).toBeInTheDocument()
   })
 
-  it('calls onUpdate with selected cards when modal Done is clicked', async () => {
+  it('calls onUpdate with selected card ids when modal Done is clicked', async () => {
     const onUpdate = vi.fn()
     render(<SetupTab chapter={{ ...chapter, set_aside_cards: [] }} onUpdate={onUpdate} />)
     await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
-    await userEvent.click(screen.getByRole('checkbox', { name: /^skeleton$/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /^skeleton #1$/i }))
     await userEvent.click(screen.getByRole('button', { name: /^done$/i }))
-    expect(onUpdate).toHaveBeenCalledWith({ set_aside_cards: ['Skeleton'] })
+    expect(onUpdate).toHaveBeenCalledWith({ set_aside_cards: ['skeleton_1'] })
   })
 
   it('modal closes without calling onUpdate when Cancel is clicked', async () => {
     const onUpdate = vi.fn()
     render(<SetupTab chapter={{ ...chapter, set_aside_cards: [] }} onUpdate={onUpdate} />)
     await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
-    await userEvent.click(screen.getByRole('checkbox', { name: /^skeleton$/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /^skeleton #1$/i }))
     await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
     expect(onUpdate).not.toHaveBeenCalled()
     expect(screen.queryByRole('button', { name: /^done$/i })).not.toBeInTheDocument()

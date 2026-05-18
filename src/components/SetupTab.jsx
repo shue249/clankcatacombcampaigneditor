@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { CardPickerModal } from './CardPickerModal'
 import { TokenPickerModal } from './TokenPickerModal'
+import { ArtifactPickerModal } from './ArtifactPickerModal'
 import { CARD_BY_ID } from '../data/cards'
 import { TOKEN_BY_ID } from '../data/tokens'
+import { ARTIFACT_BY_ID } from '../data/artifacts'
 
 const inputClass = 'w-full rounded bg-gray-700 border border-gray-600 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
 const labelClass = 'block text-sm text-gray-300 mb-1'
@@ -45,7 +47,8 @@ function TokenChips({ tokens, byId, onRemove }) {
 
 export function SetupTab({ chapter, onUpdate }) {
   const [startingMap, setStartingMap] = useState(chapter.starting_map ?? '')
-  const [startingArtifacts, setStartingArtifacts] = useState((chapter.starting_artifacts ?? []).join('\n'))
+  const [startingArtifacts, setStartingArtifacts] = useState(chapter.starting_artifacts ?? [])
+  const [showArtifactPicker, setShowArtifactPicker] = useState(false)
   const [startingTokens, setStartingTokens] = useState(chapter.starting_tokens ?? [])
   const [showStartingTokenPicker, setShowStartingTokenPicker] = useState(false)
   const [tileDeck, setTileDeck] = useState((chapter.tile_deck ?? []).join('\n'))
@@ -114,17 +117,25 @@ export function SetupTab({ chapter, onUpdate }) {
           />
         </div>
 
-        {/* Starting Artifacts — free text */}
+        {/* Starting Artifacts — artifact picker */}
         <div>
-          <label htmlFor="setup-starting-artifacts" className={labelClass}>Starting Artifacts</label>
-          <textarea
-            id="setup-starting-artifacts"
-            rows={3}
-            value={startingArtifacts}
-            onChange={(e) => setStartingArtifacts(e.target.value)}
-            onBlur={() => handleListBlur('starting_artifacts', startingArtifacts, chapter.starting_artifacts ?? [])}
-            placeholder="One item per line"
-            className={inputClass + ' resize-none'}
+          <div className="flex items-center justify-between mb-2">
+            <span className={labelClass}>Starting Artifacts</span>
+            <button
+              onClick={() => setShowArtifactPicker(true)}
+              className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+            >
+              Add Artifacts
+            </button>
+          </div>
+          <TokenChips
+            tokens={startingArtifacts}
+            byId={ARTIFACT_BY_ID}
+            onRemove={(ids) => {
+              const updated = startingArtifacts.filter((id) => !ids.includes(id))
+              setStartingArtifacts(updated)
+              onUpdate({ starting_artifacts: updated })
+            }}
           />
         </div>
 
@@ -277,6 +288,14 @@ export function SetupTab({ chapter, onUpdate }) {
           />
         </div>
       </section>
+
+      {showArtifactPicker && (
+        <ArtifactPickerModal
+          selectedArtifacts={startingArtifacts}
+          onDone={(artifacts) => { setStartingArtifacts(artifacts); setShowArtifactPicker(false); onUpdate({ starting_artifacts: artifacts }) }}
+          onCancel={() => setShowArtifactPicker(false)}
+        />
+      )}
 
       {showCardPicker && (
         <CardPickerModal

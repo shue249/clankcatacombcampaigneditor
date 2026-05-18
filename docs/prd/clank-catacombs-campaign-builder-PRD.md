@@ -108,6 +108,14 @@ Chapter
 ├── rival_clank
 ├── dragon_clank
 ├── ghost_clank
+├── player_clank_hard
+├── rival_clank_hard
+├── dragon_clank_hard
+├── ghost_clank_hard
+├── player_clank_brutal
+├── rival_clank_brutal
+├── dragon_clank_brutal
+├── ghost_clank_brutal
 ├── rage_track
 ├── set_aside_cards
 ├── set_aside_tokens
@@ -209,6 +217,14 @@ Configures the gameplay setup. Fields include:
 | rival_clank | Integer |
 | dragon_clank | Integer |
 | ghost_clank | Integer |
+| player_clank_hard | Integer |
+| rival_clank_hard | Integer |
+| dragon_clank_hard | Integer |
+| ghost_clank_hard | Integer |
+| player_clank_brutal | Integer |
+| rival_clank_brutal | Integer |
+| dragon_clank_brutal | Integer |
+| ghost_clank_brutal | Integer |
 | rage_track | Integer |
 | set_aside_cards | List |
 | set_aside_tokens | List |

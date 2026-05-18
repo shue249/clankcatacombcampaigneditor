@@ -43,8 +43,47 @@ describe('SetupTab', () => {
     expect(screen.getByLabelText(/starting artifacts/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/starting tokens/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/tile deck/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/set aside cards/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add cards/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/set aside tokens/i)).toBeInTheDocument()
+  })
+
+  it('pre-filled set_aside_cards appear as removable chips', () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    expect(screen.getByText('Dragon card')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /remove dragon card/i })).toBeInTheDocument()
+  })
+
+  it('clicking the remove button on a chip calls onUpdate with card removed', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={chapter} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /remove dragon card/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ set_aside_cards: [] })
+  })
+
+  it('clicking Add Cards opens the card picker modal', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
+    expect(screen.getByRole('button', { name: /^done$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^cancel$/i })).toBeInTheDocument()
+  })
+
+  it('calls onUpdate with selected cards when modal Done is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, set_aside_cards: [] }} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /^skeleton$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^done$/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ set_aside_cards: ['Skeleton'] })
+  })
+
+  it('modal closes without calling onUpdate when Cancel is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, set_aside_cards: [] }} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /add cards/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /^skeleton$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /^done$/i })).not.toBeInTheDocument()
   })
 
   it('pre-fills list fields as one item per line', () => {

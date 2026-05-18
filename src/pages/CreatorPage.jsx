@@ -19,6 +19,7 @@ export function CreatorPage() {
   const [selected, setSelected] = useState({ type: 'chapter', chapterNumber: 1 })
   const [savedFlash, setSavedFlash] = useState(false)
   const [deleteConfirmChapter, setDeleteConfirmChapter] = useState(null)
+  const [chapterTabs, setChapterTabs] = useState({})
 
   useEffect(() => {
     if (campaign === undefined) navigate('/')
@@ -151,6 +152,8 @@ export function CreatorPage() {
               key={selectedChapter.chapter_number}
               chapter={selectedChapter}
               onUpdateChapter={(fields) => updateChapter(selectedChapter.chapter_number, fields)}
+              initialTab={chapterTabs[selectedChapter.chapter_number] ?? 'Story'}
+              onTabChange={(tab) => setChapterTabs((prev) => ({ ...prev, [selectedChapter.chapter_number]: tab }))}
             />
           )}
         </main>

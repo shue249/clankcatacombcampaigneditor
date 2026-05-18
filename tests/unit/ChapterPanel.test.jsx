@@ -63,4 +63,24 @@ describe('ChapterPanel', () => {
     await userEvent.click(screen.getByRole('tab', { name: /completion/i }))
     expect(screen.getByRole('tab', { name: /completion/i })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('initialTab prop sets the active tab on mount', () => {
+    render(<ChapterPanel chapter={chapter} onUpdateChapter={() => {}} initialTab="Setup" />)
+    expect(screen.getByRole('tab', { name: /setup/i })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: /story/i })).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('onTabChange is called with the tab name when a tab is clicked', async () => {
+    const onTabChange = vi.fn()
+    render(<ChapterPanel chapter={chapter} onUpdateChapter={() => {}} onTabChange={onTabChange} />)
+    await userEvent.click(screen.getByRole('tab', { name: /setup/i }))
+    expect(onTabChange).toHaveBeenCalledWith('Setup')
+  })
+
+  it('onTabChange is called when switching back to Story tab', async () => {
+    const onTabChange = vi.fn()
+    render(<ChapterPanel chapter={chapter} onUpdateChapter={() => {}} initialTab="Setup" onTabChange={onTabChange} />)
+    await userEvent.click(screen.getByRole('tab', { name: /story/i }))
+    expect(onTabChange).toHaveBeenCalledWith('Story')
+  })
 })

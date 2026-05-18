@@ -6,7 +6,7 @@ import { SetupTab } from '../../src/components/SetupTab'
 const chapter = {
   chapter_number: 1,
   starting_map: 'Forest path',
-  starting_artifacts: ['Sword', 'Shield'],
+  starting_artifacts: ['artifact_5'],
   starting_tokens: ['lockpick_1'],
   tile_deck: ['Forest', 'Cave'],
   player_clank: 3,
@@ -40,8 +40,8 @@ describe('SetupTab', () => {
 
   it('renders list fields', () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
-    expect(screen.getByLabelText(/starting artifacts/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/tile deck/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add artifacts/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add cards/i })).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /add tokens/i })).toHaveLength(2)
   })
@@ -103,9 +103,55 @@ describe('SetupTab', () => {
     expect(screen.queryByRole('button', { name: /^done$/i })).not.toBeInTheDocument()
   })
 
-  it('pre-fills list fields as one item per line', () => {
+  it('pre-filled starting_artifacts appear as removable chips using artifact name', () => {
     render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
-    expect(screen.getByLabelText(/starting artifacts/i)).toHaveValue('Sword\nShield')
+    expect(screen.getByText('5 point Artifact')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^remove 5 point artifact$/i })).toBeInTheDocument()
+  })
+
+  it('clicking the remove button on a starting artifact chip calls onUpdate with artifact removed', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={chapter} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /^remove 5 point artifact$/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ starting_artifacts: [] })
+  })
+
+  it('clicking Add Artifacts opens the artifact picker modal', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /add artifacts/i }))
+    expect(screen.getByRole('heading', { name: /^starting artifacts$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^done$/i })).toBeInTheDocument()
+  })
+
+  it('artifact modal pre-checks artifacts already in starting_artifacts', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /add artifacts/i }))
+    expect(screen.getByRole('checkbox', { name: /^5 point artifact$/i })).toBeChecked()
+  })
+
+  it('artifact modal does not pre-check artifacts not in starting_artifacts', async () => {
+    render(<SetupTab chapter={chapter} onUpdate={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: /add artifacts/i }))
+    expect(screen.getByRole('checkbox', { name: /^7 point artifact$/i })).not.toBeChecked()
+  })
+
+  it('calls onUpdate with selected artifact ids when artifact modal Done is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, starting_artifacts: [] }} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /add artifacts/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /^5 point artifact$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^done$/i }))
+    expect(onUpdate).toHaveBeenCalledWith({ starting_artifacts: ['artifact_5'] })
+  })
+
+  it('artifact modal closes without calling onUpdate when Cancel is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<SetupTab chapter={{ ...chapter, starting_artifacts: [] }} onUpdate={onUpdate} />)
+    await userEvent.click(screen.getByRole('button', { name: /add artifacts/i }))
+    await userEvent.click(screen.getByRole('checkbox', { name: /^5 point artifact$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /^done$/i })).not.toBeInTheDocument()
   })
 
   it('renders Normal, Hard and Brutal difficulty columns', () => {
@@ -172,14 +218,6 @@ describe('SetupTab', () => {
     await userEvent.type(screen.getByLabelText(/starting map/i), 'New map')
     await userEvent.tab()
     expect(onUpdate).toHaveBeenCalledWith({ starting_map: 'New map' })
-  })
-
-  it('calls onUpdate with starting_artifacts array on blur', async () => {
-    const onUpdate = vi.fn()
-    render(<SetupTab chapter={{ ...chapter, starting_artifacts: [] }} onUpdate={onUpdate} />)
-    await userEvent.type(screen.getByLabelText(/starting artifacts/i), 'Sword')
-    await userEvent.tab()
-    expect(onUpdate).toHaveBeenCalledWith({ starting_artifacts: ['Sword'] })
   })
 
   it('calls onUpdate with player_clank number on blur', async () => {

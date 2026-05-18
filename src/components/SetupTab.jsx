@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { CardPickerModal } from './CardPickerModal'
+import { CARD_BY_ID } from '../data/cards'
 
 const inputClass = 'w-full rounded bg-gray-700 border border-gray-600 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
 const labelClass = 'block text-sm text-gray-300 mb-1'
@@ -7,6 +9,16 @@ const headingClass = 'text-sm font-semibold text-gray-400 uppercase tracking-wid
 
 function toList(str) {
   return str.split('\n').map((s) => s.trim()).filter(Boolean)
+}
+
+function groupCardChips(cardIds) {
+  const groups = new Map()
+  for (const id of cardIds) {
+    const name = CARD_BY_ID[id]?.name ?? id
+    if (!groups.has(name)) groups.set(name, [])
+    groups.get(name).push(id)
+  }
+  return [...groups.entries()].map(([name, ids]) => ({ name, ids, count: ids.length }))
 }
 
 export function SetupTab({ chapter, onUpdate }) {
@@ -29,7 +41,8 @@ export function SetupTab({ chapter, onUpdate }) {
   const [ghostClankBrutal, setGhostClankBrutal] = useState(chapter.ghost_clank_brutal ?? 1)
 
   const [rageTrack, setRageTrack] = useState(chapter.rage_track ?? 3)
-  const [setAsideCards, setSetAsideCards] = useState((chapter.set_aside_cards ?? []).join('\n'))
+  const [setAsideCards, setSetAsideCards] = useState(chapter.set_aside_cards ?? [])
+  const [showCardPicker, setShowCardPicker] = useState(false)
   const [setAsideTokens, setSetAsideTokens] = useState((chapter.set_aside_tokens ?? []).join('\n'))
   const [instructions, setInstructions] = useState(chapter.instructions ?? '')
 
@@ -146,24 +159,66 @@ export function SetupTab({ chapter, onUpdate }) {
       {/* Group 4 — Set Aside */}
       <section className={sectionClass}>
         <h3 className={headingClass}>Set Aside</h3>
-        {[
-          { id: 'setup-set-aside-cards',  label: 'Set Aside Cards',  value: setAsideCards,  set: setSetAsideCards,  field: 'set_aside_cards',  orig: chapter.set_aside_cards ?? [] },
-          { id: 'setup-set-aside-tokens', label: 'Set Aside Tokens', value: setAsideTokens, set: setSetAsideTokens, field: 'set_aside_tokens', orig: chapter.set_aside_tokens ?? [] },
-        ].map(({ id, label, value, set, field, orig }) => (
-          <div key={id}>
-            <label htmlFor={id} className={labelClass}>{label}</label>
-            <textarea
-              id={id}
-              rows={3}
-              value={value}
-              onChange={(e) => set(e.target.value)}
-              onBlur={() => handleListBlur(field, value, orig)}
-              placeholder="One item per line"
-              className={inputClass + ' resize-none'}
-            />
+
+        {/* Set Aside Cards — card picker */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className={labelClass}>Set Aside Cards</span>
+            <button
+              onClick={() => setShowCardPicker(true)}
+              className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+            >
+              Add Cards
+            </button>
           </div>
-        ))}
+          {setAsideCards.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {groupCardChips(setAsideCards).map(({ name, ids, count }) => (
+                <span key={name} className="flex items-center gap-1.5 bg-gray-700 rounded px-2.5 py-1 text-sm text-white">
+                  {count > 1 ? `${name} ×${count}` : name}
+                  <button
+                    aria-label={`Remove ${name}`}
+                    onClick={() => {
+                      const updated = setAsideCards.filter((id) => !ids.includes(id))
+                      setSetAsideCards(updated)
+                      onUpdate({ set_aside_cards: updated })
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors leading-none"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Set Aside Tokens — free-text textarea */}
+        <div>
+          <label htmlFor="setup-set-aside-tokens" className={labelClass}>Set Aside Tokens</label>
+          <textarea
+            id="setup-set-aside-tokens"
+            rows={3}
+            value={setAsideTokens}
+            onChange={(e) => setSetAsideTokens(e.target.value)}
+            onBlur={() => handleListBlur('set_aside_tokens', setAsideTokens, chapter.set_aside_tokens ?? [])}
+            placeholder="One item per line"
+            className={inputClass + ' resize-none'}
+          />
+        </div>
       </section>
+
+      {showCardPicker && (
+        <CardPickerModal
+          selectedCards={setAsideCards}
+          onDone={(cards) => {
+            setSetAsideCards(cards)
+            setShowCardPicker(false)
+            onUpdate({ set_aside_cards: cards })
+          }}
+          onCancel={() => setShowCardPicker(false)}
+        />
+      )}
 
       {/* Group 5 — Starting Instructions */}
       <section className={sectionClass}>

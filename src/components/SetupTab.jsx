@@ -84,17 +84,23 @@ export function SetupTab({ chapter, onUpdate }) {
     onUpdate({ [field]: list })
   }
 
-  function handleIntBlur(field, value, original) {
-    const parsed = isNaN(parseInt(value, 10)) ? 0 : parseInt(value, 10)
+  function clampInt(value, min, max) {
+    const raw = parseInt(value, 10)
+    return isNaN(raw) ? min : Math.min(max, Math.max(min, raw))
+  }
+
+  function handleIntBlur(field, value, setter, original, min = 0, max = Infinity) {
+    const parsed = clampInt(value, min, max)
+    setter(parsed)
     if (parsed === original) return
     onUpdate({ [field]: parsed })
   }
 
   const clankRows = [
-    { label: 'Player Clank', values: [playerClank, playerClankHard, playerClankBrutal], setters: [setPlayerClank, setPlayerClankHard, setPlayerClankBrutal], fields: ['player_clank', 'player_clank_hard', 'player_clank_brutal'], origs: [chapter.player_clank ?? 3, chapter.player_clank_hard ?? 3, chapter.player_clank_brutal ?? 3] },
-    { label: 'Rival Clank',  values: [rivalClank,  rivalClankHard,  rivalClankBrutal],  setters: [setRivalClank,  setRivalClankHard,  setRivalClankBrutal],  fields: ['rival_clank',  'rival_clank_hard',  'rival_clank_brutal'],  origs: [chapter.rival_clank ?? 3, chapter.rival_clank_hard ?? 3, chapter.rival_clank_brutal ?? 3] },
-    { label: 'Dragon Clank', values: [dragonClank, dragonClankHard, dragonClankBrutal], setters: [setDragonClank, setDragonClankHard, setDragonClankBrutal], fields: ['dragon_clank', 'dragon_clank_hard', 'dragon_clank_brutal'], origs: [chapter.dragon_clank ?? 0, chapter.dragon_clank_hard ?? 4, chapter.dragon_clank_brutal ?? 6] },
-    { label: 'Ghost Clank',  values: [ghostClank,  ghostClankHard,  ghostClankBrutal],  setters: [setGhostClank,  setGhostClankHard,  setGhostClankBrutal],  fields: ['ghost_clank',  'ghost_clank_hard',  'ghost_clank_brutal'],  origs: [chapter.ghost_clank ?? 0, chapter.ghost_clank_hard ?? 0, chapter.ghost_clank_brutal ?? 1] },
+    { label: 'Player Clank', min: 0, max: 30, values: [playerClank, playerClankHard, playerClankBrutal], setters: [setPlayerClank, setPlayerClankHard, setPlayerClankBrutal], fields: ['player_clank', 'player_clank_hard', 'player_clank_brutal'], origs: [chapter.player_clank ?? 3, chapter.player_clank_hard ?? 3, chapter.player_clank_brutal ?? 3] },
+    { label: 'Rival Clank',  min: 0, max: 30, values: [rivalClank,  rivalClankHard,  rivalClankBrutal],  setters: [setRivalClank,  setRivalClankHard,  setRivalClankBrutal],  fields: ['rival_clank',  'rival_clank_hard',  'rival_clank_brutal'],  origs: [chapter.rival_clank ?? 3, chapter.rival_clank_hard ?? 3, chapter.rival_clank_brutal ?? 3] },
+    { label: 'Dragon Clank', min: 0, max: 24, values: [dragonClank, dragonClankHard, dragonClankBrutal], setters: [setDragonClank, setDragonClankHard, setDragonClankBrutal], fields: ['dragon_clank', 'dragon_clank_hard', 'dragon_clank_brutal'], origs: [chapter.dragon_clank ?? 0, chapter.dragon_clank_hard ?? 4, chapter.dragon_clank_brutal ?? 6] },
+    { label: 'Ghost Clank',  min: 0, max: 5,  values: [ghostClank,  ghostClankHard,  ghostClankBrutal],  setters: [setGhostClank,  setGhostClankHard,  setGhostClankBrutal],  fields: ['ghost_clank',  'ghost_clank_hard',  'ghost_clank_brutal'],  origs: [chapter.ghost_clank ?? 0, chapter.ghost_clank_hard ?? 0, chapter.ghost_clank_brutal ?? 1] },
   ]
   const difficulties = ['Normal', 'Hard', 'Brutal']
 
@@ -186,18 +192,19 @@ export function SetupTab({ chapter, onUpdate }) {
               {d}
             </div>
           ))}
-          {clankRows.map(({ label, values, setters, fields, origs }) => (
+          {clankRows.map(({ label, min, max, values, setters, fields, origs }) => (
             <React.Fragment key={label}>
               <div className="text-sm text-gray-300">{label}</div>
               {difficulties.map((diff, i) => (
                 <input
                   key={diff}
                   type="number"
-                  min={0}
+                  min={min}
+                  max={max}
                   aria-label={`${label} ${diff}`}
                   value={values[i]}
                   onChange={(e) => setters[i](e.target.value)}
-                  onBlur={() => handleIntBlur(fields[i], values[i], origs[i])}
+                  onBlur={() => handleIntBlur(fields[i], values[i], setters[i], origs[i], min, max)}
                   className={inputClass + ' text-center'}
                 />
               ))}
@@ -214,10 +221,11 @@ export function SetupTab({ chapter, onUpdate }) {
           <input
             id="setup-rage-track"
             type="number"
-            min={0}
+            min={1}
+            max={7}
             value={rageTrack}
             onChange={(e) => setRageTrack(e.target.value)}
-            onBlur={() => handleIntBlur('rage_track', rageTrack, chapter.rage_track ?? 3)}
+            onBlur={() => handleIntBlur('rage_track', rageTrack, setRageTrack, chapter.rage_track ?? 3, 1, 7)}
             className={inputClass}
           />
         </div>

@@ -210,24 +210,24 @@ Configures the gameplay setup. Fields include:
 | Field | Type | Description |
 |---|---|---|
 | starting_map | TextArea | Free-text description for now. Will become a structured map selection UI in a future version. |
-| starting_artifacts | List |
-| starting_tokens | List |
-| tile_deck | List |
-| player_clank | Integer |
-| rival_clank | Integer |
-| dragon_clank | Integer |
-| ghost_clank | Integer |
-| player_clank_hard | Integer |
-| rival_clank_hard | Integer |
-| dragon_clank_hard | Integer |
-| ghost_clank_hard | Integer |
-| player_clank_brutal | Integer |
-| rival_clank_brutal | Integer |
-| dragon_clank_brutal | Integer |
-| ghost_clank_brutal | Integer |
-| rage_track | Integer |
-| set_aside_cards | List |
-| set_aside_tokens | List |
+| starting_artifacts | List | Picker — selected from the 7 physical artifacts |
+| starting_tokens | List | Picker — selected from the 64 physical tokens |
+| tile_deck | List | One item per line |
+| player_clank | Integer | min 0, max 30 |
+| rival_clank | Integer | min 0, max 30 |
+| dragon_clank | Integer | min 0, max 24 |
+| ghost_clank | Integer | min 0, max 5 |
+| player_clank_hard | Integer | min 0, max 30 |
+| rival_clank_hard | Integer | min 0, max 30 |
+| dragon_clank_hard | Integer | min 0, max 24 |
+| ghost_clank_hard | Integer | min 0, max 5 |
+| player_clank_brutal | Integer | min 0, max 30 |
+| rival_clank_brutal | Integer | min 0, max 30 |
+| dragon_clank_brutal | Integer | min 0, max 24 |
+| ghost_clank_brutal | Integer | min 0, max 5 |
+| rage_track | Integer | min 1, max 7, default 3 |
+| set_aside_cards | List | Picker — selected from the 100 physical cards |
+| set_aside_tokens | List | Picker — selected from the 64 physical tokens |
 | instructions | TextArea |
 
 #### Tab 3: Events

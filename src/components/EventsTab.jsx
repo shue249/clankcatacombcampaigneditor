@@ -61,8 +61,8 @@ function EventNode({ id, data, selected }) {
       {selected && data.category !== 'ESCAPE' && (
         <button
           aria-label="Delete event"
-          onMouseDown={(e) => { e.stopPropagation(); actions?.requestDelete(id, data.name) }}
-          className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-400 hover:bg-white/10 transition-colors text-base leading-none"
+          onClick={(e) => { e.stopPropagation(); actions?.requestDelete(id, data.name) }}
+          className="nodrag nopan absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-400 hover:bg-white/10 transition-colors text-base leading-none"
         >
           ✕
         </button>
@@ -201,15 +201,11 @@ export function EventsTab({ chapter, onUpdate }) {
 
   function confirmDeleteNode() {
     const { nodeId } = deleteTarget
-    setNodes((nds) => {
-      const updated = nds.filter((n) => n.id !== nodeId)
-      setEdges((eds) => {
-        const updatedEdges = eds.filter((e) => e.source !== nodeId && e.target !== nodeId)
-        persist(updated, updatedEdges)
-        return updatedEdges
-      })
-      return updated
-    })
+    const updatedNodes = nodes.filter((n) => n.id !== nodeId)
+    const updatedEdges = edges.filter((e) => e.source !== nodeId && e.target !== nodeId)
+    setNodes(updatedNodes)
+    setEdges(updatedEdges)
+    persist(updatedNodes, updatedEdges)
     setDeleteTarget(null)
   }
 

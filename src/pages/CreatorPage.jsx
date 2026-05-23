@@ -4,6 +4,7 @@ import { CampaignSettings } from '../components/CampaignSettings'
 import { ChapterPanel } from '../components/ChapterPanel'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useCampaignEditor } from '../hooks/useCampaignEditor'
+import { exportCampaign } from '../services/campaignService'
 
 function chapterLabel(ch) {
   return ch.title?.trim()
@@ -126,8 +127,8 @@ export function CreatorPage() {
             </button>
           </div>
 
-          {/* Save button — always visible at bottom */}
-          <div className="p-3 border-t border-gray-800 shrink-0">
+          {/* Save + Export buttons — always visible at bottom */}
+          <div className="p-3 border-t border-gray-800 shrink-0 flex flex-col gap-2">
             <button
               onClick={handleSave}
               className={`w-full px-3 py-2 rounded text-sm font-semibold transition-colors ${
@@ -137,6 +138,12 @@ export function CreatorPage() {
               }`}
             >
               {savedFlash ? 'Saved ✓' : 'Save'}
+            </button>
+            <button
+              onClick={() => exportCampaign(campaign)}
+              className="w-full px-3 py-2 rounded text-sm font-semibold bg-gray-700 hover:bg-gray-600 text-white transition-colors"
+            >
+              Export
             </button>
           </div>
 

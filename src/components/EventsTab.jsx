@@ -245,7 +245,7 @@ export function EventsTab({ chapter, onUpdate }) {
         {/* Validation banner */}
         {!isValid && nodes.length > 1 && (
           <div className="text-xs text-orange-400 bg-orange-900/30 border border-orange-700 rounded px-3 py-2 shrink-0">
-            Connect at least one MAIN-QUEST leaf directly to ESCAPE before saving.
+            Connect at least one MAIN-QUEST event directly to ESCAPE before saving.
           </div>
         )}
 

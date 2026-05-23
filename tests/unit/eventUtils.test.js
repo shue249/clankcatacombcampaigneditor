@@ -197,7 +197,7 @@ describe('hasValidEscapePath', () => {
     expect(hasValidEscapePath(nodes, [])).toBe(false)
   })
 
-  it('returns true when a MAIN-QUEST leaf connects to ESCAPE', () => {
+  it('returns true when a MAIN-QUEST node connects directly to ESCAPE', () => {
     const nodes = [
       { id: 'EVT-001', data: { category: 'MAIN-QUEST' } },
       { id: 'EVT-ESCAPE', data: { category: 'ESCAPE' } },
@@ -206,7 +206,20 @@ describe('hasValidEscapePath', () => {
     expect(hasValidEscapePath(nodes, edges)).toBe(true)
   })
 
-  it('returns false when MAIN-QUEST is not a leaf (has outgoing edges to non-ESCAPE)', () => {
+  it('returns true when a MAIN-QUEST node connects to ESCAPE and also to another node', () => {
+    const nodes = [
+      { id: 'EVT-001', data: { category: 'MAIN-QUEST' } },
+      { id: 'EVT-002', data: { category: 'ROUND-END' } },
+      { id: 'EVT-ESCAPE', data: { category: 'ESCAPE' } },
+    ]
+    const edges = [
+      { source: 'EVT-001', target: 'EVT-ESCAPE' },
+      { source: 'EVT-001', target: 'EVT-002' },
+    ]
+    expect(hasValidEscapePath(nodes, edges)).toBe(true)
+  })
+
+  it('returns true when a mid-chain MAIN-QUEST node connects to ESCAPE', () => {
     const nodes = [
       { id: 'EVT-001', data: { category: 'MAIN-QUEST' } },
       { id: 'EVT-002', data: { category: 'MAIN-QUEST' } },

@@ -45,9 +45,9 @@ export function eventsToNodes(events) {
     data: {
       category: event.category,
       name: event.name ?? '',
-      count: event.count ?? 1,
       remainder_text: event.remainder_text ?? '',
-      event_completion_text: event.event_completion_text ?? [''],
+      event_completion_text: event.event_completion_text ?? '',
+      choices: event.choices ?? [],
     },
     deletable: event.category !== 'ESCAPE',
   }))
@@ -79,8 +79,8 @@ export function flowDataToEvents(rfNodes, rfEdges, existingEvents) {
       category: node.data.category,
       name: node.data.name ?? '',
       remainder_text: node.data.remainder_text ?? '',
-      count: node.data.count ?? 1,
-      event_completion_text: node.data.event_completion_text ?? [''],
+      event_completion_text: node.data.event_completion_text ?? '',
+      choices: node.data.choices ?? [],
       required_event_ids,
       position: node.position,
     }
@@ -94,8 +94,8 @@ export function createEscapeEvent() {
     required_event_ids: [],
     name: 'Escape',
     remainder_text: '',
-    count: 1,
-    event_completion_text: [''],
+    event_completion_text: '',
+    choices: [],
     position: { x: 400, y: 500 },
   }
 }

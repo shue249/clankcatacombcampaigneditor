@@ -191,8 +191,8 @@ describe('exportCampaign', () => {
   it('preserves events array in the export', () => {
     const chapter = buildNewChapter(1)
     chapter.events = [
-      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Find Key', count: 1, required_event_ids: [], event_completion_text: ['Done'], remainder_text: '' },
-      { event_id: 'EVT-ESCAPE', category: 'ESCAPE', name: 'Escape', count: 1, required_event_ids: ['EVT-001'], event_completion_text: [''], remainder_text: '' },
+      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Find Key', required_event_ids: [], event_completion_text: 'Done', remainder_text: '', choices: [] },
+      { event_id: 'EVT-ESCAPE', category: 'ESCAPE', name: 'Escape', required_event_ids: ['EVT-001'], event_completion_text: '', remainder_text: '', choices: [] },
     ]
     const campaign = { id: 'x', name: 'C', chapters: [chapter] }
     exportCampaign(campaign)
@@ -202,6 +202,53 @@ describe('exportCampaign', () => {
       expect(ch.events).toHaveLength(2)
       expect(ch.events[0].event_id).toBe('EVT-001')
       expect(ch.events[1].required_event_ids).toEqual(['EVT-001'])
+    })
+  })
+
+  it('exports event_completion_text as a string', () => {
+    const chapter = buildNewChapter(1)
+    chapter.events = [
+      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Find Key', required_event_ids: [], event_completion_text: 'Victory!', remainder_text: '', choices: [] },
+    ]
+    const campaign = { id: 'x', name: 'C', chapters: [chapter] }
+    exportCampaign(campaign)
+    const blob = global.URL.createObjectURL.mock.calls[0][0]
+    return blob.text().then(text => {
+      const evt = JSON.parse(text).chapters[0].events[0]
+      expect(typeof evt.event_completion_text).toBe('string')
+      expect(evt.event_completion_text).toBe('Victory!')
+    })
+  })
+
+  it('does not export count on events', () => {
+    const chapter = buildNewChapter(1)
+    chapter.events = [
+      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Find Key', required_event_ids: [], event_completion_text: '', remainder_text: '', choices: [] },
+    ]
+    const campaign = { id: 'x', name: 'C', chapters: [chapter] }
+    exportCampaign(campaign)
+    const blob = global.URL.createObjectURL.mock.calls[0][0]
+    return blob.text().then(text => {
+      const evt = JSON.parse(text).chapters[0].events[0]
+      expect(evt.count).toBeUndefined()
+    })
+  })
+
+  it('preserves choices array on events in the export', () => {
+    const choices = [
+      { decision: 'Give the Idol', outcome: 'Lose the Monkey Idol, gain a Librarian card' },
+      { decision: 'Keep the Idol', outcome: 'Keep the Monkey Idol (5 VP)' },
+    ]
+    const chapter = buildNewChapter(1)
+    chapter.events = [
+      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Make a Choice', required_event_ids: [], event_completion_text: '', remainder_text: '', choices },
+    ]
+    const campaign = { id: 'x', name: 'C', chapters: [chapter] }
+    exportCampaign(campaign)
+    const blob = global.URL.createObjectURL.mock.calls[0][0]
+    return blob.text().then(text => {
+      const evt = JSON.parse(text).chapters[0].events[0]
+      expect(evt.choices).toEqual(choices)
     })
   })
 

@@ -57,12 +57,21 @@ export function validateImport(campaign) {
 
       if (!evt.name) errors.push(`${eRef}: missing "name"`)
 
-      if (!evt.count || evt.count < 1) {
-        errors.push(`${eRef}: "count" must be >= 1`)
+      if (evt.event_completion_text === undefined || evt.event_completion_text === null) {
+        errors.push(`${eRef}: missing "event_completion_text"`)
       }
 
-      if (!Array.isArray(evt.event_completion_text) || evt.event_completion_text.length === 0) {
-        errors.push(`${eRef}: "event_completion_text" must have at least 1 entry`)
+      if (evt.choices !== undefined) {
+        if (!Array.isArray(evt.choices) || evt.choices.length > 20) {
+          errors.push(`${eRef}: choices must be an array of max 20 entries with decision and outcome`)
+        } else {
+          for (const choice of evt.choices) {
+            if (typeof choice.decision !== 'string' || typeof choice.outcome !== 'string') {
+              errors.push(`${eRef}: choices must be an array of max 20 entries with decision and outcome`)
+              break
+            }
+          }
+        }
       }
 
       for (const refId of (evt.required_event_ids ?? [])) {

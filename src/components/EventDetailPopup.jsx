@@ -9,36 +9,35 @@ const CATEGORY_LABEL_COLOR = {
 const inputClass = 'w-full rounded bg-gray-700 border border-gray-600 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
 const labelClass = 'block text-sm text-gray-300 mb-1'
 
+const MAX_CHOICES = 20
+
 export function EventDetailPopup({ category, initialData, onSave, onCancel }) {
   const [name, setName] = useState(initialData?.name ?? '')
   const [remainderText, setRemainderText] = useState(initialData?.remainder_text ?? '')
-  const [count, setCount] = useState(initialData?.count ?? 1)
-  const [completionTexts, setCompletionTexts] = useState(
-    initialData?.event_completion_text?.length > 0 ? initialData.event_completion_text : ['']
-  )
+  const [completionText, setCompletionText] = useState(initialData?.event_completion_text ?? '')
+  const [choices, setChoices] = useState(initialData?.choices ?? [])
 
   function handleSave() {
     if (!name.trim()) return
-    const parsedCount = Math.max(1, parseInt(count, 10) || 1)
     onSave({
       name: name.trim(),
       remainder_text: remainderText,
-      count: parsedCount,
-      event_completion_text: completionTexts,
+      event_completion_text: completionText,
+      choices,
     })
   }
 
-  function updateCompletionText(index, value) {
-    setCompletionTexts((prev) => prev.map((t, i) => (i === index ? value : t)))
+  function addChoice() {
+    if (choices.length >= MAX_CHOICES) return
+    setChoices((prev) => [...prev, { decision: '', outcome: '' }])
   }
 
-  function addCompletionText() {
-    setCompletionTexts((prev) => [...prev, ''])
+  function removeChoice(index) {
+    setChoices((prev) => prev.filter((_, i) => i !== index))
   }
 
-  function removeCompletionText(index) {
-    if (completionTexts.length <= 1) return
-    setCompletionTexts((prev) => prev.filter((_, i) => i !== index))
+  function updateChoice(index, field, value) {
+    setChoices((prev) => prev.map((c, i) => i === index ? { ...c, [field]: value } : c))
   }
 
   return (
@@ -81,48 +80,72 @@ export function EventDetailPopup({ category, initialData, onSave, onCancel }) {
             />
           </div>
 
-          <div className="max-w-xs">
-            <label htmlFor="event-count" className={labelClass}>Count</label>
-            <input
-              id="event-count"
-              type="number"
-              min={1}
-              value={count}
-              onChange={(e) => setCount(e.target.value)}
-              className={inputClass}
+          <div>
+            <label htmlFor="event-completion" className={labelClass}>Completion Text</label>
+            <textarea
+              id="event-completion"
+              rows={3}
+              value={completionText}
+              onChange={(e) => setCompletionText(e.target.value)}
+              placeholder="Shown when event is completed..."
+              className={inputClass + ' resize-none'}
             />
           </div>
 
           <div>
-            <label className={labelClass}>Completion Text</label>
-            <div className="flex flex-col gap-2">
-              {completionTexts.map((text, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <textarea
-                    rows={2}
-                    value={text}
-                    onChange={(e) => updateCompletionText(i, e.target.value)}
-                    placeholder={`Completion ${i + 1}`}
-                    aria-label={`Completion text ${i + 1}`}
-                    className={inputClass + ' flex-1 resize-none'}
-                  />
-                  <button
-                    onClick={() => removeCompletionText(i)}
-                    disabled={completionTexts.length <= 1}
-                    aria-label={`Remove completion text ${i + 1}`}
-                    className="mt-1 text-gray-400 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg leading-none"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <span className={labelClass + ' mb-0'}>Choices ({choices.length}/{MAX_CHOICES})</span>
               <button
-                onClick={addCompletionText}
-                className="text-xs text-indigo-400 hover:text-indigo-300 self-start transition-colors"
+                onClick={addChoice}
+                disabled={choices.length >= MAX_CHOICES}
+                className="text-xs text-indigo-400 hover:text-indigo-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                + Add completion text
+                + Add Choice
               </button>
             </div>
+            {choices.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {choices.map((choice, i) => (
+                  <div key={i} className="rounded border border-gray-700 bg-gray-800 p-3 flex flex-col gap-2 relative">
+                    <button
+                      onClick={() => removeChoice(i)}
+                      aria-label={`Remove choice ${i + 1}`}
+                      className="nodrag nopan absolute top-2 right-2 text-gray-500 hover:text-red-400 transition-colors text-base leading-none"
+                    >
+                      ×
+                    </button>
+                    <div>
+                      <label htmlFor={`choice-decision-${i}`} className={labelClass}>
+                        Decision {i + 1}
+                      </label>
+                      <input
+                        id={`choice-decision-${i}`}
+                        type="text"
+                        value={choice.decision}
+                        onChange={(e) => updateChoice(i, 'decision', e.target.value)}
+                        placeholder="e.g. Give the Monkey Idol"
+                        aria-label={`Decision ${i + 1}`}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`choice-outcome-${i}`} className={labelClass}>
+                        Outcome {i + 1}
+                      </label>
+                      <textarea
+                        id={`choice-outcome-${i}`}
+                        rows={2}
+                        value={choice.outcome}
+                        onChange={(e) => updateChoice(i, 'outcome', e.target.value)}
+                        placeholder="e.g. Lose the Monkey Idol, gain a Librarian card"
+                        aria-label={`Outcome ${i + 1}`}
+                        className={inputClass + ' resize-none'}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

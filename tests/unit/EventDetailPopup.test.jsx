@@ -15,16 +15,20 @@ describe('EventDetailPopup', () => {
   })
 
   it('shows "Edit Event" heading when initialData is provided', () => {
-    render(<EventDetailPopup category="MAIN-QUEST" initialData={{ name: 'Defeat Skeleton', remainder_text: '', count: 1, event_completion_text: [''] }} onSave={() => {}} onCancel={() => {}} />)
+    render(<EventDetailPopup category="MAIN-QUEST" initialData={{ name: 'Defeat Skeleton', remainder_text: '', event_completion_text: '', choices: [] }} onSave={() => {}} onCancel={() => {}} />)
     expect(screen.getByRole('heading', { name: /edit event/i })).toBeInTheDocument()
   })
 
-  it('renders name, reminder text, count, and completion text fields', () => {
+  it('renders name, reminder text, and completion text fields', () => {
     render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={() => {}} onCancel={() => {}} />)
     expect(screen.getByLabelText(/^name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/reminder text/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/^count/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/^completion text 1$/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^completion text$/i)).toBeInTheDocument()
+  })
+
+  it('does not render a count field', () => {
+    render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={() => {}} onCancel={() => {}} />)
+    expect(screen.queryByLabelText(/^count$/i)).not.toBeInTheDocument()
   })
 
   it('renders Save and Cancel buttons', () => {
@@ -45,12 +49,11 @@ describe('EventDetailPopup', () => {
   })
 
   it('pre-fills fields from initialData', () => {
-    const initialData = { name: 'Defeat Skeleton', remainder_text: 'Reminder here', count: 3, event_completion_text: ['Done!'] }
+    const initialData = { name: 'Defeat Skeleton', remainder_text: 'Reminder here', event_completion_text: 'Done!', choices: [] }
     render(<EventDetailPopup category="MAIN-QUEST" initialData={initialData} onSave={() => {}} onCancel={() => {}} />)
     expect(screen.getByLabelText(/^name/i)).toHaveValue('Defeat Skeleton')
     expect(screen.getByLabelText(/reminder text/i)).toHaveValue('Reminder here')
-    expect(screen.getByLabelText(/^count/i)).toHaveValue(3)
-    expect(screen.getByLabelText(/^completion text 1$/i)).toHaveValue('Done!')
+    expect(screen.getByLabelText(/^completion text$/i)).toHaveValue('Done!')
   })
 
   it('calls onSave with entered data when Save is clicked', async () => {
@@ -61,8 +64,8 @@ describe('EventDetailPopup', () => {
     expect(onSave).toHaveBeenCalledWith({
       name: 'Find the Relic',
       remainder_text: '',
-      count: 1,
-      event_completion_text: [''],
+      event_completion_text: '',
+      choices: [],
     })
   })
 
@@ -81,45 +84,58 @@ describe('EventDetailPopup', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 
-  it('can add a second completion text entry', async () => {
+  // ── Choices ───────────────────────────────────────────────────────────────
+
+  it('renders an Add Choice button', () => {
     render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={() => {}} onCancel={() => {}} />)
-    await userEvent.click(screen.getByRole('button', { name: /add completion text/i }))
-    expect(screen.getByLabelText(/^completion text 2$/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add choice/i })).toBeInTheDocument()
   })
 
-  it('remove button is disabled when only one completion text entry exists', () => {
+  it('adds a choice row when Add Choice is clicked', async () => {
     render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={() => {}} onCancel={() => {}} />)
-    expect(screen.getByRole('button', { name: /remove completion text 1/i })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: /add choice/i }))
+    expect(screen.getByLabelText(/^decision 1$/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^outcome 1$/i)).toBeInTheDocument()
   })
 
-  it('can remove a completion text entry when more than one exists', async () => {
+  it('can remove a choice row', async () => {
     render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={() => {}} onCancel={() => {}} />)
-    await userEvent.click(screen.getByRole('button', { name: /add completion text/i }))
-    expect(screen.getByLabelText(/^completion text 2$/i)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /remove completion text 2/i }))
-    expect(screen.queryByLabelText(/^completion text 2$/i)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /add choice/i }))
+    expect(screen.getByLabelText(/^decision 1$/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /remove choice 1/i }))
+    expect(screen.queryByLabelText(/^decision 1$/i)).not.toBeInTheDocument()
   })
 
-  it('calls onSave with count clamped to min 1', async () => {
+  it('Add Choice button is disabled when 20 choices exist', async () => {
+    render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={() => {}} onCancel={() => {}} />)
+    for (let i = 0; i < 20; i++) {
+      await userEvent.click(screen.getByRole('button', { name: /add choice/i }))
+    }
+    expect(screen.getByRole('button', { name: /add choice/i })).toBeDisabled()
+  })
+
+  it('calls onSave with choices when saved', async () => {
     const onSave = vi.fn()
     render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={onSave} onCancel={() => {}} />)
     await userEvent.type(screen.getByLabelText(/^name/i), 'Event')
-    await userEvent.clear(screen.getByLabelText(/^count/i))
-    await userEvent.type(screen.getByLabelText(/^count/i), '0')
-    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ count: 1 }))
-  })
-
-  it('calls onSave with multiple completion texts', async () => {
-    const onSave = vi.fn()
-    render(<EventDetailPopup category="MAIN-QUEST" initialData={null} onSave={onSave} onCancel={() => {}} />)
-    await userEvent.type(screen.getByLabelText(/^name/i), 'Event')
-    await userEvent.type(screen.getByLabelText(/^completion text 1$/i), 'First')
-    await userEvent.click(screen.getByRole('button', { name: /add completion text/i }))
-    await userEvent.type(screen.getByLabelText(/^completion text 2$/i), 'Second')
+    await userEvent.click(screen.getByRole('button', { name: /add choice/i }))
+    await userEvent.type(screen.getByLabelText(/^decision 1$/i), 'Fight')
+    await userEvent.type(screen.getByLabelText(/^outcome 1$/i), 'You win')
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      event_completion_text: ['First', 'Second'],
+      choices: [{ decision: 'Fight', outcome: 'You win' }],
     }))
+  })
+
+  it('pre-fills choices from initialData', () => {
+    const initialData = {
+      name: 'Event',
+      remainder_text: '',
+      event_completion_text: '',
+      choices: [{ decision: 'Fight', outcome: 'You win' }],
+    }
+    render(<EventDetailPopup category="MAIN-QUEST" initialData={initialData} onSave={() => {}} onCancel={() => {}} />)
+    expect(screen.getByLabelText(/^decision 1$/i)).toHaveValue('Fight')
+    expect(screen.getByLabelText(/^outcome 1$/i)).toHaveValue('You win')
   })
 })

@@ -97,10 +97,10 @@ describe('isValidConnection', () => {
 describe('eventsToNodes', () => {
   it('maps category to correct node type', () => {
     const events = [
-      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', count: 1, position: { x: 0, y: 0 } },
-      { event_id: 'EVT-002', category: 'SIDE-QUEST', name: '', count: 1, position: { x: 0, y: 0 } },
-      { event_id: 'EVT-003', category: 'ROUND-END', name: '', count: 1, position: { x: 0, y: 0 } },
-      { event_id: 'EVT-ESCAPE', category: 'ESCAPE', name: '', count: 1, position: { x: 0, y: 0 } },
+      { event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', position: { x: 0, y: 0 } },
+      { event_id: 'EVT-002', category: 'SIDE-QUEST', name: '', position: { x: 0, y: 0 } },
+      { event_id: 'EVT-003', category: 'ROUND-END', name: '', position: { x: 0, y: 0 } },
+      { event_id: 'EVT-ESCAPE', category: 'ESCAPE', name: '', position: { x: 0, y: 0 } },
     ]
     const nodes = eventsToNodes(events)
     expect(nodes[0].type).toBe('mainQuest')
@@ -110,23 +110,44 @@ describe('eventsToNodes', () => {
   })
 
   it('preserves position', () => {
-    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', count: 1, position: { x: 150, y: 250 } }]
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', position: { x: 150, y: 250 } }]
     expect(eventsToNodes(events)[0].position).toEqual({ x: 150, y: 250 })
   })
 
   it('uses default position when missing', () => {
-    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', count: 1 }]
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '' }]
     expect(eventsToNodes(events)[0].position).toEqual({ x: 100, y: 100 })
   })
 
   it('sets deletable: false on ESCAPE', () => {
-    const events = [{ event_id: 'EVT-ESCAPE', category: 'ESCAPE', name: '', count: 1, position: { x: 0, y: 0 } }]
+    const events = [{ event_id: 'EVT-ESCAPE', category: 'ESCAPE', name: '', position: { x: 0, y: 0 } }]
     expect(eventsToNodes(events)[0].deletable).toBe(false)
   })
 
   it('sets deletable: true on non-ESCAPE nodes', () => {
-    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', count: 1, position: { x: 0, y: 0 } }]
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', position: { x: 0, y: 0 } }]
     expect(eventsToNodes(events)[0].deletable).toBe(true)
+  })
+
+  it('does not include count in node data', () => {
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', position: { x: 0, y: 0 } }]
+    expect(eventsToNodes(events)[0].data.count).toBeUndefined()
+  })
+
+  it('maps event_completion_text string to node data', () => {
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', event_completion_text: 'Done!', position: { x: 0, y: 0 } }]
+    expect(eventsToNodes(events)[0].data.event_completion_text).toBe('Done!')
+  })
+
+  it('maps choices array to node data', () => {
+    const choices = [{ decision: 'Fight', outcome: 'You win' }]
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', choices, position: { x: 0, y: 0 } }]
+    expect(eventsToNodes(events)[0].data.choices).toEqual(choices)
+  })
+
+  it('defaults choices to empty array when missing', () => {
+    const events = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: '', position: { x: 0, y: 0 } }]
+    expect(eventsToNodes(events)[0].data.choices).toEqual([])
   })
 })
 
@@ -163,8 +184,8 @@ describe('eventsToEdges', () => {
 describe('flowDataToEvents', () => {
   it('derives required_event_ids from edges', () => {
     const nodes = [
-      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'A', count: 1, remainder_text: '', event_completion_text: [''] } },
-      { id: 'EVT-002', position: { x: 0, y: 100 }, data: { category: 'ESCAPE', name: 'Escape', count: 1, remainder_text: '', event_completion_text: [''] } },
+      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'A', remainder_text: '', event_completion_text: '', choices: [] } },
+      { id: 'EVT-002', position: { x: 0, y: 100 }, data: { category: 'ESCAPE', name: 'Escape', remainder_text: '', event_completion_text: '', choices: [] } },
     ]
     const edges = [{ source: 'EVT-001', target: 'EVT-002' }]
     const events = flowDataToEvents(nodes, edges, [])
@@ -174,12 +195,37 @@ describe('flowDataToEvents', () => {
 
   it('preserves existing event data not in node.data', () => {
     const nodes = [
-      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'Updated', count: 1, remainder_text: '', event_completion_text: [''] } },
+      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'Updated', remainder_text: '', event_completion_text: '', choices: [] } },
     ]
-    const existingEvents = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Old', count: 1, some_extra_field: 'keep me' }]
+    const existingEvents = [{ event_id: 'EVT-001', category: 'MAIN-QUEST', name: 'Old', some_extra_field: 'keep me' }]
     const events = flowDataToEvents(nodes, [], existingEvents)
     expect(events[0].some_extra_field).toBe('keep me')
     expect(events[0].name).toBe('Updated')
+  })
+
+  it('does not include count in persisted events', () => {
+    const nodes = [
+      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'A', remainder_text: '', event_completion_text: '', choices: [] } },
+    ]
+    const events = flowDataToEvents(nodes, [], [])
+    expect(events[0].count).toBeUndefined()
+  })
+
+  it('persists choices array', () => {
+    const choices = [{ decision: 'Fight', outcome: 'You win' }, { decision: 'Flee', outcome: 'You escape' }]
+    const nodes = [
+      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'A', remainder_text: '', event_completion_text: 'Done', choices } },
+    ]
+    const events = flowDataToEvents(nodes, [], [])
+    expect(events[0].choices).toEqual(choices)
+  })
+
+  it('persists event_completion_text as string', () => {
+    const nodes = [
+      { id: 'EVT-001', position: { x: 0, y: 0 }, data: { category: 'MAIN-QUEST', name: 'A', remainder_text: '', event_completion_text: 'Victory!', choices: [] } },
+    ]
+    const events = flowDataToEvents(nodes, [], [])
+    expect(events[0].event_completion_text).toBe('Victory!')
   })
 })
 

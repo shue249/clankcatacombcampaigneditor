@@ -5,6 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { CreatorPage } from '../../src/pages/CreatorPage'
 import { useCampaignStore } from '../../src/store/campaignStore'
 import { buildNewChapter } from '../../src/services/campaignService'
+import * as campaignService from '../../src/services/campaignService'
 
 const BASE = {
   id: 'c1',
@@ -233,5 +234,18 @@ describe('CreatorPage', () => {
     await userEvent.type(input, 'Renamed')
     await userEvent.tab()
     expect(useCampaignStore.getState().campaigns[0].name).toBe('Renamed')
+  })
+
+  it('shows an Export button in the sidebar', () => {
+    renderCreatorPage()
+    expect(screen.getByRole('button', { name: /^export$/i })).toBeInTheDocument()
+  })
+
+  it('clicking Export calls exportCampaign with the current campaign', async () => {
+    const spy = vi.spyOn(campaignService, 'exportCampaign').mockImplementation(() => {})
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: /^export$/i }))
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: 'c1', name: 'My Campaign' }))
+    spy.mockRestore()
   })
 })

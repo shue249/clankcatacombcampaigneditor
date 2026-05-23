@@ -34,7 +34,7 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Bump version and generate changelog
+      - name: Tag version and generate changelog
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

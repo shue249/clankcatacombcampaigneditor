@@ -103,10 +103,8 @@ export function createEscapeEvent() {
 export function hasValidEscapePath(rfNodes, rfEdges) {
   const escapeNode = rfNodes.find((n) => n.data.category === 'ESCAPE')
   if (!escapeNode) return false
-  return rfNodes.some((n) => {
-    if (n.data.category !== 'MAIN-QUEST') return false
-    const connectsToEscape = rfEdges.some((e) => e.source === n.id && e.target === escapeNode.id)
-    const isLeaf = !rfEdges.some((e) => e.source === n.id && e.target !== escapeNode.id)
-    return connectsToEscape && isLeaf
-  })
+  return rfNodes.some(
+    (n) => n.data.category === 'MAIN-QUEST' &&
+           rfEdges.some((e) => e.source === n.id && e.target === escapeNode.id)
+  )
 }

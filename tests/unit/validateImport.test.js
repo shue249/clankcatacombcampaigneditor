@@ -5,9 +5,9 @@ const validEvent = (overrides = {}) => ({
   event_id: 'EVT-001',
   category: 'MAIN-QUEST',
   name: 'Defeat Skeleton',
-  count: 1,
-  event_completion_text: ['The skeleton falls.'],
+  event_completion_text: 'The skeleton falls.',
   required_event_ids: [],
+  choices: [],
   ...overrides,
 })
 
@@ -15,9 +15,9 @@ const escapeEvent = () => ({
   event_id: 'EVT-ESC',
   category: 'ESCAPE',
   name: 'Escape',
-  count: 1,
-  event_completion_text: ['You escaped!'],
+  event_completion_text: 'You escaped!',
   required_event_ids: ['EVT-001'],
+  choices: [],
 })
 
 const validChapter = (overrides = {}) => ({
@@ -73,16 +73,33 @@ describe('validateImport', () => {
     expect(errors.some(e => e.includes('unknown category'))).toBe(true)
   })
 
-  it('errors when an event has count less than 1', () => {
-    const chapter = validChapter({ events: [validEvent({ count: 0 }), escapeEvent()] })
-    const errors = validateImport(validCampaign({ chapters: [chapter] }))
-    expect(errors.some(e => e.includes('count'))).toBe(true)
-  })
-
-  it('errors when event_completion_text is empty', () => {
-    const chapter = validChapter({ events: [validEvent({ event_completion_text: [] }), escapeEvent()] })
+  it('errors when event_completion_text is missing', () => {
+    const chapter = validChapter({ events: [validEvent({ event_completion_text: undefined }), escapeEvent()] })
     const errors = validateImport(validCampaign({ chapters: [chapter] }))
     expect(errors.some(e => e.includes('event_completion_text'))).toBe(true)
+  })
+
+  it('does not error when event_completion_text is an empty string', () => {
+    const chapter = validChapter({ events: [validEvent({ event_completion_text: '' }), escapeEvent()] })
+    const errors = validateImport(validCampaign({ chapters: [chapter] }))
+    expect(errors.some(e => e.includes('event_completion_text'))).toBe(false)
+  })
+
+  it('accepts event_completion_text as a non-empty string', () => {
+    const chapter = validChapter({ events: [validEvent({ event_completion_text: 'The skeleton falls.' }), escapeEvent()] })
+    expect(validateImport(validCampaign({ chapters: [chapter] }))).toEqual([])
+  })
+
+  it('does not error when choices is an empty array', () => {
+    const chapter = validChapter({ events: [validEvent({ choices: [] }), escapeEvent()] })
+    expect(validateImport(validCampaign({ chapters: [chapter] }))).toEqual([])
+  })
+
+  it('does not error when choices is absent', () => {
+    const evt = validEvent()
+    delete evt.choices
+    const chapter = validChapter({ events: [evt, escapeEvent()] })
+    expect(validateImport(validCampaign({ chapters: [chapter] }))).toEqual([])
   })
 
   it('errors when chapter has no ESCAPE event', () => {
@@ -110,6 +127,36 @@ describe('validateImport', () => {
     const chapter = validChapter({ events: [evtA, evtB, escapeEvent()] })
     const errors = validateImport(validCampaign({ chapters: [chapter] }))
     expect(errors.some(e => e.includes('circular'))).toBe(true)
+  })
+
+  it('returns no errors for valid choices', () => {
+    const evt = validEvent({ choices: [{ decision: 'Fight', outcome: 'You win' }] })
+    const chapter = validChapter({ events: [evt, escapeEvent()] })
+    expect(validateImport(validCampaign({ chapters: [chapter] }))).toEqual([])
+  })
+
+  it('errors when choices has more than 20 entries', () => {
+    const choices = Array.from({ length: 21 }, (_, i) => ({ decision: `Choice ${i}`, outcome: `Result ${i}` }))
+    const evt = validEvent({ choices })
+    const chapter = validChapter({ events: [evt, escapeEvent()] })
+    const errors = validateImport(validCampaign({ chapters: [chapter] }))
+    expect(errors.some(e => e.includes('choices'))).toBe(true)
+  })
+
+  it('errors when a choice is missing decision', () => {
+    const choices = [{ outcome: 'You win' }]
+    const evt = validEvent({ choices })
+    const chapter = validChapter({ events: [evt, escapeEvent()] })
+    const errors = validateImport(validCampaign({ chapters: [chapter] }))
+    expect(errors.some(e => e.includes('choices'))).toBe(true)
+  })
+
+  it('errors when a choice is missing outcome', () => {
+    const choices = [{ decision: 'Fight' }]
+    const evt = validEvent({ choices })
+    const chapter = validChapter({ events: [evt, escapeEvent()] })
+    const errors = validateImport(validCampaign({ chapters: [chapter] }))
+    expect(errors.some(e => e.includes('choices'))).toBe(true)
   })
 
   it('errors when grade ranges overlap', () => {

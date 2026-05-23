@@ -1,7 +1,7 @@
 # Clank! Catacombs — Solo Campaign Builder
 ## Product Requirements Document (PRD)
 
-**Version:** 1.1 
+**Version:** 1.2 
 **Status:** Draft
 
 ---
@@ -137,8 +137,10 @@ Event
 ├── required_event_ids[]      (list of event ids to be fulfiled before unlocking this event)
 ├── name                      (name of event to be shown during Play, in verb form, eg "Defeat Skeleton")
 ├── remainder_text            (reminders to be shown on screen if this event is in play)
-├── count                     (number of times this event can be cleared)
-└── event_completion_text[]   (texts to be shown upon each event completion)
+├── event_completion_text     (text shown upon event completion)
+└── choices[]                 (optional list of player choices; 0–20 entries)
+    ├── decision              (the choice label shown to the player)
+    └── outcome               (the result text shown after the player picks this choice)
 ```
 
 ### 3.2 Tech Stack (Recommended)
@@ -311,8 +313,8 @@ Opens on create (drag-drop) and on edit (click an existing node). Contains:
 |---|---|---|
 | name | Text (required) | Verb-form label shown during Play (e.g. "Defeat Skeleton") |
 | remainder_text | Textarea | Reminder shown on the Play screen while event is active |
-| count | Integer (min 1) | How many times the event must be completed; defaults to 1 |
-| event_completion_text | List of Text (min 1) | At least 1 entry required. First entry shown on completion 1, second on completion 2, etc. If completions exceed the number of entries, the last entry is reused. |
+| event_completion_text | Textarea | Text shown when the event is completed |
+| choices | List of Choice (0–20) | Optional player choices. Each entry has a **decision** (the option shown to the player) and an **outcome** (the result text shown after selecting that option). |
 
 `event_id` is auto-generated. `category` is fixed by the type dragged. `required_event_ids` is set by drawing edges on the canvas, not entered manually.
 
@@ -369,13 +371,13 @@ Fields for each event include:
 
 | Field | Type | Description |
 |---|---|---|
-| event_id | Integer | Automatically generated |
+| event_id | String | Automatically generated (e.g. "EVT-001") |
 | category | Text | Fixed to "MAIN-QUEST", "SIDE-QUEST", "ROUND-END", "ESCAPE" |
 | required_event_ids | List | Populated by drawn edges — all events that must complete before this one unlocks |
 | name | Text | Shown on Play screen as the action button label |
 | remainder_text | Text | Shown on Play screen while event is active but not yet completed |
-| count | Integer | Number of completions required; defaults to 1 |
-| event_completion_text | List | Text shown upon each completion step (one entry per count) |
+| event_completion_text | Text | Text shown when the event is completed |
+| choices | List of Choice | Optional (0–20). Each choice has a `decision` (option label) and `outcome` (result text) |
 
 #### Tab 4: Completion
 
@@ -669,7 +671,7 @@ Overall campaign grade shown after all chapters complete.
 A campaign can be exported as a single `.json` file conforming to the campaign data model. The file includes:
 - All campaign metadata (name, description, author)
 - All chapter configurations (story, setup, scoring, grades, outro texts)
-- All event instances with their full config (category, name, count, completion texts, edges)
+- All event instances with their full config (category, name, completion text, choices, edges)
 
 ### 6.2 Import
 
@@ -683,7 +685,8 @@ Any `.json` file can be selected for import. The app runs a validation pass befo
 | `name` field present and non-empty | "Campaign name is missing" |
 | `chapters` is a non-empty array | "Campaign has no chapters" |
 | Each chapter has `chapter_number`, `title`, `events`, `outro_text_escaped`, `outro_text_knocked_out_saved`, `outro_text_knocked_out_depths` | "Chapter {n}: missing required field {field}" |
-| Each event has `event_id`, `category`, `name`, `count` ≥ 1, `event_completion_text` with ≥ 1 entry | "Chapter {n}, Event {id}: missing or invalid field {field}" |
+| Each event has `event_id`, `category`, `name`, `event_completion_text` (string) | "Chapter {n}, Event {id}: missing or invalid field {field}" |
+| `choices` (if present) is an array of max 20 entries, each with non-empty `decision` and `outcome` strings | "Chapter {n}, Event {id}: choices must be an array of max 20 entries with decision and outcome" |
 | Each event `category` is one of: `MAIN-QUEST`, `SIDE-QUEST`, `ROUND-END`, `ESCAPE` | "Chapter {n}, Event {id}: unknown category {value}" |
 | Each chapter has exactly one `ESCAPE` event | "Chapter {n}: must have exactly one ESCAPE event" |
 | No circular dependencies in `required_event_ids` | "Chapter {n}: circular dependency detected involving event {id}" |

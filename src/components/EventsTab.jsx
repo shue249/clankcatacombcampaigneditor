@@ -52,9 +52,9 @@ function EventNode({ id, data, selected }) {
       <div className="text-sm text-white font-medium leading-snug min-h-[1.25rem]">
         {data.name || <span className="text-gray-500 italic">Unnamed</span>}
       </div>
-      {data.count > 1 && (
+      {data.choices?.length > 0 && (
         <span className={`mt-1.5 inline-block text-xs text-white px-1.5 py-0.5 rounded ${s.badge}`}>
-          ×{data.count}
+          {data.choices.length} choice{data.choices.length !== 1 ? 's' : ''}
         </span>
       )}
 
@@ -141,7 +141,7 @@ export function EventsTab({ chapter, onUpdate }) {
       id: newId,
       type: categoryToNodeType(category),
       position,
-      data: { category, name: '', count: 1, remainder_text: '', event_completion_text: [''] },
+      data: { category, name: '', remainder_text: '', event_completion_text: '', choices: [] },
       deletable: true,
     }
 

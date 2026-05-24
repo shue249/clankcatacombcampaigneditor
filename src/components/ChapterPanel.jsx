@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StoryTab } from './StoryTab'
 import { SetupTab } from './SetupTab'
 import { EventsTab } from './EventsTab'
+import { CompletionTab } from './CompletionTab'
 
 const TABS = ['Story', 'Setup', 'Events', 'Completion']
 
@@ -44,7 +45,9 @@ export function ChapterPanel({ chapter, onUpdateChapter, initialTab = 'Story', o
         {activeTab === 'Events' && (
           <EventsTab chapter={chapter} onUpdate={onUpdateChapter} />
         )}
-        {activeTab === 'Completion' && <p className="text-gray-500 text-sm">Completion coming soon.</p>}
+        {activeTab === 'Completion' && (
+          <CompletionTab chapter={chapter} onUpdate={onUpdateChapter} />
+        )}
       </div>
     </div>
   )
